@@ -67,7 +67,7 @@ function deleteWebhook() {
 }
 // ------------------------------------
 
-// register (probably done)
+// register (done)
 // ------------------------------------
 function register(id) {
     var user = userExists(id);
@@ -130,17 +130,25 @@ function addUser(data) {
 }
 // ------------------------------------
 
-// view
-// TODO write a function that allows the user to be able to view all the [0] from the active request google sheet
+// view (done)
 function view(userID) {
-    var curr_user = userExists(userID);
-    if (curr_user.firstName.length === 0) {
-        sendText(userID,
-        "Hey there! We couldn't find you in our user database, join us using /register"
-        );
-    } else {
-        sendText(userID, 'Which session?', zoneKeyboard('view', curruser.zone));
+    var sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
+    var rangeData = sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var lastColumn = rangeData.getLastColumn();
+
+    var searchRange = sheet.getRange(2, 1, lastRow - 1, lastColumn);
+    var rangeValues = searchRange.getValues();
+
+    var active_requests = '';
+    
+    for (i = 0; i < lastRow - 1; i++) {
+        var ref = rangeValues[i][0]
+        var request = rangeValues[i][1];
+        var favour = rangeValues[i][2];
+        active_requests = active_requests + ref + '. ' + request + "    " + favour + " favour(s)\n";
     }
+    sendText(userID, active_requests);
 }
 
 // delete
@@ -205,10 +213,10 @@ function deleteRequest(col, row, userID) {
 }
 // ------------------------------------
 
-// sendHelp (find out hhow to get the request and enumerate the active request)
+// sendHelp (done)
 // ------------------------------------
 function chooseCategory(userID) {
-    var category = {
+    var category_keyboard = {
         inline_keyboard: [
           [
             {
@@ -219,19 +227,19 @@ function chooseCategory(userID) {
           [
             {
               text: 'Collect Laundry',
-              callback_data: 'category-Collect Laundry',
+              callback_data: 'category- Collect_Laundry',
             },
           ],
           [
             {
               text: 'Borrow Item',
-              callback_data: 'category-Borrow Item',
+              callback_data: 'category-Borrow_Item',
             },
           ],
         ],
     };
 
-    sendText(userID, 'What Category?', category);
+    sendText(userID, 'What Category?', category_keyboard);
 }
 
 function giveFavours(userID, data) {
@@ -265,6 +273,7 @@ function giveFavours(userID, data) {
 }
 
 function makeRequest(userID, data, room) {
+    sendText(userID, 'Almost There');
     var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
     var rangeData = active_request_sheet.getDataRange();
     var lastRow = rangeData.getLastRow();
@@ -279,7 +288,7 @@ function makeRequest(userID, data, room) {
 
     active_request_sheet.appendRow([lastRow, request, favours])
 
-    sendText(userID, 'Request made: ' + request + '\n' + ref_id);
+      sendText(userID, 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
 }
 // ------------------------------------
 
