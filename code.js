@@ -30,19 +30,23 @@ function doPost(e) {
       
       if (text === '/register') {
         register(userId);
-      } else if (text === '/send_help'){
-        chooseCategory(userId);
+      } else if (text === '/make_request'){
+        if (Object.getOwnPropertyNames(userExists(userId)).length !== 0) {
+          chooseCategory(userId);
+        } else {
+          sendText(userId, "You are not registered, to sign up use /register");
+        }
       } else if (text === '/start') {
         sendText(
           chatID,
           "Welcome to Eusoff's Favour Bot! \nTo sign up /register \n" +
-          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /send_help"
+          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /make_request"
         );
       } else if (text === '/view') {
         view(userId);
       } else if (text === '/cancel') {
         if (viewOwn(userId) === false) {
-            sendText(chatID, 'You have no bookings to cancel');
+            sendText(chatID, 'You have no requests to cancel');
         } else {
             sendText(chatID, 'Which request do you want to cancel?', viewOwn(userId));
         }
@@ -88,7 +92,7 @@ function register(id) {
         'Your room number is ' +
         user.room +
         '\n\n' +
-        'Would you like to make a request? /send_help' +
+        'Would you like to make a request? /make_request' +
         '\n' +
         'Would you like to cancel your booking? /cancel' +
         '\n' +
@@ -287,18 +291,20 @@ function giveFavours(userID, data) {
 }
 
 function addRemark(userID, data) {
+    var data_arr = data.split("-");
+    var category_number = data_arr[1];
     var remark_keyboard = {
         inline_keyboard: [
               [
               {
                   text: 'Yes',
-                  callback_data: 'remark-' + data + ' 1',
+                  callback_data: 'remark-' + category_number + ' 1',
               },
               ],
               [
               {
                   text: 'No',
-                  callback_data: 'remark-' + data + ' 0',
+                  callback_data: 'remark-' + category_number + ' 0',
               },
               ],
             ],
@@ -313,17 +319,15 @@ function makeRequest(userID, data, room) {
     var lastRow = rangeData.getLastRow();
 
     var data_arr = data.split('-');
-    var category_number = data_arr[1];
-    var category = category_number.split(' ')[0];
-    var number = category_number.split(' ')[1];
-    var remark = category_number.split(' ')[2];
-          
+    var category_number_remark = data_arr[1];
+    var request = category_number_remark.split(' ')[0];
+    var favours = category_number_remark.split(' ')[1];
+    var remark = category_number_remark.split(' ')[2];
+
     if (remark === 1) {
          var msg = addRemarkMessage();
     }
-
-    var request = category;
-    var favours = number;
+    
     var status = 'Available'    
     var now = currentDateTime();
 
