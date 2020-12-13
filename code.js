@@ -1,4 +1,3 @@
-
 var TOKEN = "1326277324:AAGIGMpXIega-CnhljzToqZAZ-cV4RGPkmQ";
 var sheet_id = "1MiPByQzVG-Zwe0vDSYjFSU-gfTt5uwH8JKQY61tk9JQ";
 var telegramUrl = "https://api.telegram.org/bot" + TOKEN;
@@ -45,9 +44,9 @@ function doPost(e) {
         } else {
             sendText(chatID, 'Which request do you want to cancel?', viewOwn(userId));
         }
+      } else {
+        addUser(contents);
       }
-      
-      addUser(contents);
     }
 }
 
@@ -353,8 +352,3 @@ function sendText(chatId, text, keyBoard) {
     };
     return UrlFetchApp.fetch(telegramUrl + '/', data);
 }
-
-
-
-
-
