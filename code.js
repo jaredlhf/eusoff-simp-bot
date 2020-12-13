@@ -288,14 +288,28 @@ function makeRequest(userID, data, room) {
 
     var request = category;
     var favours = number;
-    var status = 'Available'
+    var status = 'Available'    
+    var now = currentDateTime();
 
-    active_request_sheet.appendRow([lastRow, request, favours, userID, status]);
+    active_request_sheet.appendRow([lastRow, request, favours, userID, status, now[0], now[1]]);
 
       sendText(userID, 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
 }
 // ------------------------------------
 
+// return the curretn date and time
+function currentDateTime() {
+    var dateObj = new Date();
+    var month = dateObj.getMonth() + 1;
+    var day = String(dateObj.getDate()).padStart(2, '0');
+    var year = dateObj.getFullYear();
+    var date = day + '/' + month  + '/'+ year;  
+    var hour = dateObj.getHours();
+    var min  = dateObj.getMinutes();
+    var time = hour + ':' + (min < 10 ? "0" + min : min);
+    return [date, time];
+}
+//
 // checking validity of data to prevent bugs
 // ------------------------------------
 function userExists(id) {
