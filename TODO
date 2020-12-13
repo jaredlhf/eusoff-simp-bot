@@ -12,3 +12,5 @@
 6. Implement a simp system where a user can choose to 'simp' for an active request made by the opposite gender by not taking any credits.
 
 7. Implement a normal leaderboard and a simp leaderboard.
+
+8. Favour can only be requested if the user is registered.
