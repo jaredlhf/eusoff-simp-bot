@@ -1,0 +1,14 @@
+1. Implement a total 'credit/favour/whatever you want to call it' system where the user starts with certain amount of credit and uses up the credit when a request is made.
+
+2. Implement a remark column so that users can add remarks on their requests.
+
+3. Add 'Taken' and 'Completed' as possible statuses that a request can have.
+
+4. Implement a time system where the user can see the name of the person, time and date a request is made. For example, 'Dabao 2 favour(s) made by Barbara at 1200 13/12/20'.
+
+5. Implement 'take request' so a registered user can take an active request, the active request's status will change to 
+   'Taken' and when the request is done, status changes to 'Completed' and credit is added to the user's total credits.
+
+6. Implement a simp system where a user can choose to 'simp' for an active request made by the opposite gender by not taking any credits.
+
+7. Implement a normal leaderboard and a simp leaderboard.
