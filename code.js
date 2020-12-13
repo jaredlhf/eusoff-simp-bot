@@ -17,9 +17,11 @@ function doPost(e) {
       if (command === 'category') {
         giveFavours(idCallback, data);
       } else if (command === 'favour') {
-        makeRequest(idCallback, data, userExists(idCallback).room);
+        addRemark(idCallback);
       } else if (command === 'cancel') {
-            sendText(idCallback, cancelRequest(data.split('-')[1], userID));
+        sendText(idCallback, cancelRequest(data.split('-')[1], userID));
+      } else if (command === 'remark') {
+        makeRequest(idCallback, data, userExists(idCallback).room);
       }
     } else if (contents.message) {
       var chatID = contents.message.chat.id;
@@ -270,9 +272,25 @@ function giveFavours(userID, data) {
     sendText(userID, 'How many favours?', favours);
 }
 
-function addRemark(id) {
-    var text = 'Add your remark on your request, for example: Deck Chicken Rice no chicken'
-    sendText(id, text);
+function addRemark(userID) {
+    var remark_keyboard = {
+        inline_keyboard: [
+              [
+              {
+                  text: 'Yes',
+                  callback_data: 'remark-' + category + ' 1',
+              },
+              ],
+              [
+              {
+                  text: 'No',
+                  callback_data: 'remark-' + category + ' 1',
+              },
+              ],
+            ],
+        };           
+    
+    sendText(userID, 'Do you want to add any remarks?', remark_keyboard);
 }
 
 function makeRequest(userID, data, room) {
