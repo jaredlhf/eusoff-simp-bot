@@ -32,7 +32,11 @@ function doPost(e) {
         register(userId);
       } else if (text === '/make_request'){
         if (Object.getOwnPropertyNames(userExists(userId)).length !== 0) {
-          chooseCategory(userId);
+          if (userExists(userId).total_credits > 0) {
+            chooseCategory(userId);
+          } else {
+            sendText(userId, "You do not have any credits left, go do some good.");
+          }
         } else {
           sendText(userId, "You are not registered, to sign up use /register");
         }
@@ -69,7 +73,7 @@ function deleteWebhook() {
 }
 // ------------------------------------
 
-// register (done)
+// register
 // ------------------------------------
 function register(id) {
     var user = userExists(id);
@@ -110,10 +114,10 @@ function addUser(data) {
     var name = user_data_arr[0];
     var room = user_data_arr[1];
     var id = data.message.chat.id;
-    var init_favours = 5;
+    var total_credits = 5;
     var init_simp_count = 0;
   
-    sheet.appendRow([id, name, room, init_favours, init_simp_count]);
+    sheet.appendRow([id, name, room, total_credits, init_simp_count]);
   
     var text =
         'Hello ' +
@@ -225,7 +229,7 @@ function cancelRequest(row_data, userID) {
 }
 // ------------------------------------
 
-// sendHelp
+// make_request
 // ------------------------------------
 function chooseCategory(userID) {
     var category_keyboard = {
@@ -261,10 +265,13 @@ function chooseCategory(userID) {
 }
 
 function giveFavours(userID, data) {
-    // split things like 'category-Collect Laundry' -> ['category', 'Collect Laundry']
     var data_arr = data.split("-");
     var category = data_arr[1];
-    var favours = {
+            
+    var curr_user = userExists(userID);
+    var credits = curr_user.total_credits;
+            
+    var keyboard_1 = {
         inline_keyboard: [
             [
             {
@@ -286,8 +293,26 @@ function giveFavours(userID, data) {
             ],
         ],
     };
-
-    sendText(userID, 'How many favours?', favours);
+    
+    var keyboard = [];
+    for (i = 1; i <= credits; i++) {
+          keyboard[i - 1] = [
+              {
+                text: i,
+                callback_data: 'favour-' + category + ' ' + i,
+              },
+          ];
+    }
+      
+    var keyboard_2 = {
+      inline_keyboard: keyboard,
+    };
+              
+    if (credits >= 3) {
+        sendText(userID, 'How many favours?', keyboard_1);
+    } else {
+        sendText(userID, 'How many favours?', keyboard_2);
+    }
 }
 
 function addRemark(userID, data) {
@@ -314,26 +339,52 @@ function addRemark(userID, data) {
 }
 
 function makeRequest(userID, data, room) {
+    var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
     var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
     var rangeData = active_request_sheet.getDataRange();
     var lastRow = rangeData.getLastRow();
+
+    var curr_user = userExists(userID);
+    var credits = curr_user.total_credits;
 
     var data_arr = data.split('-');
     var category_number_remark = data_arr[1];
     var request = category_number_remark.split(' ')[0];
     var favours = category_number_remark.split(' ')[1];
     var remark = category_number_remark.split(' ')[2];
-
+    
     if (remark === 1) {
          var msg = addRemarkMessage();
     }
-    
+
+    var new_credits = parseInt(credits) - parseInt(favours);
+      
     var status = 'Available'    
     var now = currentDateTime();
 
-    active_request_sheet.appendRow([lastRow, request, favours, userID, status, now[0], now[1], remark]);
+    active_request_sheet.appendRow([lastRow, request, favours, userID, status, now[0], now[1], remark, favours]);
+    // update the user's new credits after minus the favour used
+    var userRow = findUserRow(userID);
+    
+    users_sheet.getRange(userRow, 4).setValue(new_credits);
 
     sendText(userID, 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
+}
+    
+function findUserRow(userID) {
+    var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
+    var rangeData = users_sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var lastColumn = rangeData.getLastColumn();
+    
+    var searchRange = users_sheet.getRange(2, 1, lastRow - 1, lastColumn);
+    var rangeValues = searchRange.getValues();
+  
+    for (i = 1; i < lastRow; i++) {
+        if (rangeValues[i][0] === userID) {
+            return i + 2;
+        }
+    }
 }
 // ------------------------------------
 
@@ -374,6 +425,7 @@ function userExists(id) {
         person.chatID = rangeValues[j][0];
         person.name = rangeValues[j][1];
         person.room = rangeValues[j][2];
+        person.total_credits = rangeValues[j][3];
         break;
       }
     }
