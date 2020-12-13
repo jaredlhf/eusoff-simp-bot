@@ -17,7 +17,7 @@ function doPost(e) {
       if (command === 'category') {
         giveFavours(idCallback, data);
       } else if (command === 'favour') {
-        addRemark(idCallback);
+        addRemark(idCallback, data);
       } else if (command === 'cancel') {
         sendText(idCallback, cancelRequest(data.split('-')[1], userID));
       } else if (command === 'remark') {
@@ -139,6 +139,8 @@ function view(userID) {
 
     var searchRange = sheet.getRange(2, 1, lastRow - 1, lastColumn);
     var rangeValues = searchRange.getValues();
+  
+    
 
     var active_requests = '';
     
@@ -146,7 +148,16 @@ function view(userID) {
         var ref = rangeValues[i][0]
         var request = rangeValues[i][1];
         var favour = rangeValues[i][2];
-        active_requests = active_requests + ref + '. ' + request + "    " + favour + " favour(s)\n";
+      
+        var request_date = rangeValues[i][5];
+        var request_time = rangeValues[i][6];
+      
+        var curr_user = userExists(rangeValues[i][3]);
+        var name = curr_user.name;
+      if (rangeValues[i][4] === 'Available') {
+        active_requests = active_requests + ref + '. ' + request + "    " + favour + " favour(s) made by " + name + 
+          " at " + request_time + ' ' + request_date + ' ' + '\n\n';
+      }  
     }
     sendText(userID, active_requests);
 }
@@ -169,10 +180,13 @@ function viewOwn(userID) {
     var keyboard = [];
   
     for (i = 0; i < lastRow - 1; i++) {
+        var request_date = rangeValues[i][5];
+        var request_time = rangeValues[i][6];
+      
         if (rangeValues[i][3] === userID && rangeValues[i][4] === "Available") {
             keyboard[count] = [
                 {
-                  text: rangeValues[i][1] + "    " + rangeValues[i][2] + " favour(s)\n",
+                  text: rangeValues[i][1] + "    " + rangeValues[i][2] + " favour(s) made at " + request_time + ' ' + request_date + '\n',
                   callback_data: 'cancel-' + i,
                 },
             ];
@@ -272,19 +286,19 @@ function giveFavours(userID, data) {
     sendText(userID, 'How many favours?', favours);
 }
 
-function addRemark(userID) {
+function addRemark(userID, data) {
     var remark_keyboard = {
         inline_keyboard: [
               [
               {
                   text: 'Yes',
-                  callback_data: 'remark-' + category + ' 1',
+                  callback_data: 'remark-' + data + ' 1',
               },
               ],
               [
               {
                   text: 'No',
-                  callback_data: 'remark-' + category + ' 1',
+                  callback_data: 'remark-' + data + ' 0',
               },
               ],
             ],
@@ -302,15 +316,20 @@ function makeRequest(userID, data, room) {
     var category_number = data_arr[1];
     var category = category_number.split(' ')[0];
     var number = category_number.split(' ')[1];
+    var remark = category_number.split(' ')[2];
+          
+    if (remark === 1) {
+         var msg = addRemarkMessage();
+    }
 
     var request = category;
     var favours = number;
     var status = 'Available'    
     var now = currentDateTime();
 
-    active_request_sheet.appendRow([lastRow, request, favours, userID, status, now[0], now[1]]);
+    active_request_sheet.appendRow([lastRow, request, favours, userID, status, now[0], now[1], remark]);
 
-      sendText(userID, 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
+    sendText(userID, 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
 }
 // ------------------------------------
 
@@ -320,10 +339,12 @@ function currentDateTime() {
     var month = dateObj.getMonth() + 1;
     var day = String(dateObj.getDate()).padStart(2, '0');
     var year = dateObj.getFullYear();
-    var date = day + '/' + month  + '/'+ year;  
+    var date = day + '/' + month  + '/'+ year;
     var hour = dateObj.getHours();
     var min  = dateObj.getMinutes();
     var time = hour + ':' + (min < 10 ? "0" + min : min);
+  
+    
     return [date, time];
 }
 //
