@@ -7,51 +7,48 @@ var webAppUrl = "https://script.google.com/macros/s/AKfycbyP7yjkj0kTjpODuAlFUQvZ
 // main function to deal with users
 function doPost(e) {
     var contents = JSON.parse(e.postData.contents);
+  
     if (contents.callback_query) {
-        var idCallback = contents.callback_query.message.chat.id;
-        var name = contents.callback_query.from.first_name;
-        var userID = contents.callback_query.from.id;
-        var data = contents.callback_query.data;
-        var command = data.split('-')[0];
-
-        if (command === 'view') {
-            sendText(idCallback, viewTime(data.split('-')[1]));
-          } else if (command === 'category') {
-            giveFavours(idCallback, data);
-          } else if (command === 'favour') {
-            makeRequest(idCallback, data, userExists(idCallback).room);
-          } else if (command === 'delete') {
-            sendText(idCallback, deleteRequest(data.split('-')[1], data.split('-')[2], userID));
-          }
+      var idCallback = contents.callback_query.message.chat.id;
+      var name = contents.callback_query.from.first_name;
+      var userID = contents.callback_query.from.id;
+      var data = contents.callback_query.data;
+      var command = data.split('-')[0];
+      
+      if (command === 'category') {
+        giveFavours(idCallback, data);
+      } else if (command === 'favour') {
+        makeRequest(idCallback, data, userExists(idCallback).room);
+      } else if (command === 'cancel') {
+            sendText(idCallback, cancelRequest(data.split('-')[1], userID));
+      }
     } else if (contents.message) {
-        var chatID = contents.message.chat.id;
-        var text = contents.message.text;
-        var userId = contents.message.from.id;
-
-        if (text === '/view') {
-            view(userId);
-          } else if (text === '/register') {
-            register(userId);
-          } else if (text === '/sendHelp') {
-            chooseCategory(userId);
-          } else if (text === '/delete') {
-            if (viewOwn(userId) === false) {
-              sendText(chatID, 'You have no bookings to delete');
-            } else {
-              sendText(chatID, 'Which request do you want to delete?', viewOwn(userId));
-            }
-          } else if (text === '/start') {
-            sendText(
-              chatID,
-              "Welcome to Eusoff's Favour Bot! \n To sign up /register \n" +
-              "To view active requests /view \n To delete your current requests /delete\n To make request /sendHelp"
-            );
-          } else if (isRoomValid(contents)) {
-            addUser(contents);
-          } else {
-            invalid(userId);
-          }
+      var chatID = contents.message.chat.id;
+      var text = contents.message.text;
+      var userId = contents.message.from.id;
+      
+      if (text === '/register') {
+        register(userId);
+      } else if (text === '/send_help'){
+        chooseCategory(userId);
+      } else if (text === '/start') {
+        sendText(
+          chatID,
+          "Welcome to Eusoff's Favour Bot! \nTo sign up /register \n" +
+          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /send_help"
+        );
+      } else if (text === '/view') {
+        view(userId);
+      } else if (text === '/cancel') {
+        if (viewOwn(userId) === false) {
+            sendText(chatID, 'You have no bookings to cancel');
+        } else {
+            sendText(chatID, 'Which request do you want to cancel?', viewOwn(userId));
         }
+      }
+      
+      addUser(contents);
+    }
 }
 
 // webhook
@@ -88,11 +85,11 @@ function register(id) {
         '!!' +
         '\n\n' +
         'Your room number is ' +
-        user.room
+        user.room +
         '\n\n' +
-        'Would you like to make a request? /sendHelp' +
+        'Would you like to make a request? /send_help' +
         '\n' +
-        'Would you like to delete your booking? /nvm' +
+        'Would you like to cancel your booking? /cancel' +
         '\n' +
         'Would you like to check the active requests? /view';
     }
@@ -108,8 +105,10 @@ function addUser(data) {
     var name = user_data_arr[0];
     var room = user_data_arr[1];
     var id = data.message.chat.id;
+    var init_favours = 5;
+    var init_simp_count = 0;
   
-    sheet.appendRow([id, name, room]);
+    sheet.appendRow([id, name, room, init_favours, init_simp_count]);
   
     var text =
         'Hello ' +
@@ -124,13 +123,13 @@ function addUser(data) {
         'Room: ' +
         room +
         '\n' +
-        'To make a request, use /sendHelp, view active requests use /view & to delete a booking /delete';
+        'To make a request, use /makeRequest, view active requests use /viewActiveRequest & to delete a booking /delete';
   
       sendText(id, text);
 }
 // ------------------------------------
 
-// view (done)
+// view
 function view(userID) {
     var sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
     var rangeData = sheet.getDataRange();
@@ -156,64 +155,58 @@ function view(userID) {
 function viewOwn(userID) {
     var curr_user = userExists(userID);
     var room = curr_user.room;
-    var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
-    var requestrange = active_request_sheet.getRange(1, 1, 93, 8);
-    var requestdata = requestrange.getValues();
+    
+    var sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
+    var rangeData = sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var lastColumn = rangeData.getLastColumn();
+
+    var searchRange = sheet.getRange(2, 1, lastRow - 1, lastColumn);
+    var rangeValues = searchRange.getValues();
+
     var count = 0;
     var keyboard = [];
   
-    for (i = 0; i < 8; i++) {
-      for (j = 0; j < 77; j++) {
-        if (requestdata[j][i] === room) {
-          keyboard[count] = [
-            {
-              text: requestdata[0][i] + ' ' + requestdata[j][0],
-              callback_data: 'delete-' + (i + 1) + '-' + (j + 1),
-            },
-          ];
-          count++;
+    for (i = 0; i < lastRow - 1; i++) {
+        if (rangeValues[i][3] === userID && rangeValues[i][4] === "Available") {
+            keyboard[count] = [
+                {
+                  text: rangeValues[i][1] + "    " + rangeValues[i][2] + " favour(s)\n",
+                  callback_data: 'cancel-' + i,
+                },
+            ];
+            count++;
         }
-      }
     }
   
-    for (i = 0; i < 8; i++) {
-      for (j = 77; j < 92; j++) {
-        if (bookingdata[j][i] === room) {
-          keyboard[count] = [
-            {
-              text: bookingdata[0][i + 1] + ' ' + bookingdata[j][0],
-              callback_data: 'delete-' + (i + 1) + '-' + (j + 1),
-            },
-          ];
-          count++;
-        }
-      }
-    }
-  
-    var deleteKeyboard = {
+    var cancelKeyboard = {
       inline_keyboard: keyboard,
     };
     if (count === 0) {
       return false;
     } else {
-      return deleteKeyboard;
+      return cancelKeyboard;
     }
-  }
+}
 
-function deleteRequest(col, row, userID) {
+function cancelRequest(row_data, userID) {
     var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
     var curr_user = userExists(userID);
-    var room = curr_user.room;
-    if (room === active_request_sheet.getRange(row, col).getValue()) {
-        active_request_sheet.getRange(row, col).clearContent();
-        return 'Request deleted!';
+    // some gross programming here
+    var row = parseInt(row_data) + 2; // add 2 to offset the array index start and the column headings
+    var requestID = active_request_sheet.getRange(row, 4).getValue();
+    var status = active_request_sheet.getRange(row, 5).getValue();
+    
+    if (requestID === userID && status === 'Available') {
+        active_request_sheet.getRange(row, 5).setValue('Cancelled');
+        return 'Request cancelled!';
     } else {
         return 'You have no active requests!';
     }
 }
 // ------------------------------------
 
-// sendHelp (done)
+// sendHelp
 // ------------------------------------
 function chooseCategory(userID) {
     var category_keyboard = {
@@ -227,13 +220,19 @@ function chooseCategory(userID) {
           [
             {
               text: 'Collect Laundry',
-              callback_data: 'category- Collect_Laundry',
+              callback_data: 'category-Collect_Laundry',
             },
           ],
           [
             {
               text: 'Borrow Item',
               callback_data: 'category-Borrow_Item',
+            },
+          ],
+          [
+            {
+              text: 'Open Gate',
+              callback_data: 'category-Open_Gate',
             },
           ],
         ],
@@ -272,8 +271,12 @@ function giveFavours(userID, data) {
     sendText(userID, 'How many favours?', favours);
 }
 
+function addRemark(id) {
+    var text = 'Add your remark on your request, for example: Deck Chicken Rice no chicken'
+    sendText(id, text);
+}
+
 function makeRequest(userID, data, room) {
-    sendText(userID, 'Almost There');
     var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
     var rangeData = active_request_sheet.getDataRange();
     var lastRow = rangeData.getLastRow();
@@ -285,8 +288,9 @@ function makeRequest(userID, data, room) {
 
     var request = category;
     var favours = number;
+    var status = 'Available'
 
-    active_request_sheet.appendRow([lastRow, request, favours])
+    active_request_sheet.appendRow([lastRow, request, favours, userID, status]);
 
       sendText(userID, 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
 }
@@ -294,11 +298,6 @@ function makeRequest(userID, data, room) {
 
 // checking validity of data to prevent bugs
 // ------------------------------------
-function invalid(id) {
-    var text = 'Oops! Looks like you entered an incorrect command.';
-    sendText(id, text);
-}
-
 function userExists(id) {
     var sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
     var rangeData = sheet.getDataRange();
@@ -324,30 +323,6 @@ function userExists(id) {
     }
     return person;
 }
-
-function isRoomValid(data) {
-    var raw_user_data = data.message.text;
-    var user_data_arr = raw_user_data.split(" ");
-
-    var room = user_data_arr[1];
-    var id = data.message.chat.id;
-    var user = userExists(id);
-  
-    if (Object.getOwnPropertyNames(user).length === 0) {
-      var sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
-  
-      var searchRange = sheet.getRange(93, 1, 497, 2);
-      var rangeValues = searchRange.getValues();
-  
-      for (j = 0; j < 497; j++) {
-        if (rangeValues[j][0] === room) {
-          return true;
-        }
-      }
-    }
-    return false;
-}
-
 // ------------------------------------
 
 // send text function
