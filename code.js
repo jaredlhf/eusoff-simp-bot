@@ -56,7 +56,7 @@ function doPost(e) {
         sendText(
           chatID,
           "Welcome to Eusoff's Favour Bot! \nTo sign up /register \n" +
-          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /make_request\n To take request /take_request\n To complete /complete"
+          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /make_request\nTo take request /take_request\nTo complete /complete"
         );
       } else if (text === '/view') {
         view(userId);
