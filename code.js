@@ -4,6 +4,7 @@ var telegramUrl = "https://api.telegram.org/bot" + TOKEN;
 var webAppUrl = "https://script.google.com/macros/s/AKfycbyP7yjkj0kTjpODuAlFUQvZFVxjxziJO-8qOmwByAmjBGL5EHA/exec";
 
 // main function to deal with users
+//hmmm
 function doPost(e) {
     var contents = JSON.parse(e.postData.contents);
   
