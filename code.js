@@ -54,7 +54,13 @@ function doPost(e) {
         sendText(
           chatID,
           "Welcome to Eusoff's Favour Bot! \nTo sign up /register \n" +
-          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /make_request\nTo take request /take_request\nTo mark a request as complete /complete"
+          "To view active requests /view \n" + 
+          "To delete your current requests /cancel\n" +
+          "To make request /make_request\n" + 
+          "To take request /take_request\n" + 
+          "To mark a request as complete /complete\n" +
+          "To view the leaderboards /leaderboard\n" +
+          "To view the simp leaderboards /simp_leaderboard\n"
         );
       } else if (text === '/view') {
         view(userId);
@@ -102,6 +108,10 @@ function doPost(e) {
         users_sheet.getRange(row, 6).setValue('No'); 
         
         sendText(userId, "Unsubscribed :( Who hurt you?");        
+      } else if (text === '/leaderboard') {
+        sendText(chatID, getLeaderboardRow(userID));
+      } else if (text === '/simp_leaderboard') {
+        sendText(chatID, getSimpLeaderboardRow(userID));
       } else {
         if (check_name_room_validity(text)) {
           addUser(contents);
@@ -743,4 +753,46 @@ function is_valid_room(block, floor) {
     } else {
         return false;
     }
+}
+
+// ---------------------------------------
+// Leaderboard
+function getLeaderboardRow(userID) {
+  var leaderboard_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName("Normal_Leaderboard");
+  var rangeData = leaderboard_sheet.getDataRange();
+  var lastRow = rangeData.getLastRow();
+  var lastColumn = rangeData.getLastColumn();
+  var searchRange = leaderboard_sheet.getRange(2, 1, lastRow - 1, lastColumn);
+  var rangeValues = searchRange.getValues();
+  var result = "Leaderboards" + '\n';
+  
+  for (i = 0; i < 3; i++) {
+      var name = rangeValues[i][0];
+      var room = rangeValues[i][1];
+      var totalFavours = rangeValues[i][2];
+      result = result + (i+1).toString() + ". " + name + " (" + room + ") " +  ": " + totalFavours + " Favours" + '\n';
+  } 
+  return result;
+ 
+}
+   
+// ---------------------------------------
+// Simp Leaderboard
+function getSimpLeaderboardRow(userID) {
+  var simp_leaderboard_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName("Simp_Leaderboard");
+  var rangeData = simp_leaderboard_sheet.getDataRange();
+  var lastRow = rangeData.getLastRow();
+  var lastColumn = rangeData.getLastColumn();
+  var searchRange = simp_leaderboard_sheet.getRange(2, 1, lastRow - 1, lastColumn);
+  var rangeValues = searchRange.getValues();
+  var result = "Simp Leaderboards" + '\n';
+  
+  for (i = 0; i < 3; i++) {
+      var name = rangeValues[i][0];
+      var room = rangeValues[i][1];
+      var simpCount = rangeValues[i][3];
+      result = result + (i+1).toString() + ". " + name + " (" + room + ") " +  ": " + simpCount + " Counts" + '\n';
+  } 
+  return result;
+ 
 }
