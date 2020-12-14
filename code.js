@@ -4,7 +4,6 @@ var telegramUrl = "https://api.telegram.org/bot" + TOKEN;
 var webAppUrl = "https://script.google.com/macros/s/AKfycbyP7yjkj0kTjpODuAlFUQvZFVxjxziJO-8qOmwByAmjBGL5EHA/exec";
 
 // main function to deal with users
-//hmmm
 function doPost(e) {
     var contents = JSON.parse(e.postData.contents);
   
@@ -80,9 +79,29 @@ function doPost(e) {
       } else if (text.slice(0, 7) === '/remark') {
         var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
         var info = locateFinalUserFavour(userId);
-        active_request_sheet.getRange(info[0], 8).setValue(text.slice(7));        
+        active_request_sheet.getRange(info[0], 8).setValue(text.slice(7));    
+        
+        var listOfSubs = subscribedUsers();
         
         sendText(userId, 'Request made: ' + info[1] + ' \n' + info[2] + ' favour(s)\nRef number: ' + (parseInt(info[3]) - 2) + '\nRemark: ' + text.slice(7));
+        for (i = 0; i < listOfSubs.length; i++) {        
+          if (listOfSubs[i] !== userId) {
+            sendText(listOfSubs[i], 'Request made: ' + info[1] + ' \n' + info[2] + ' favour(s)\nRef number: ' + (parseInt(info[3]) - 2) + '\nRemark: ' + text.slice(7));
+          }
+        }
+        
+      } else if (text === '/subscribe') {
+        var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
+        var row = findUserRow(userId);
+        users_sheet.getRange(row, 6).setValue('Yes'); 
+        
+        sendText(userId, "Successfully subscribed to Favours Bot. You will be notified whenever a new favour is requested!");      
+      } else if (text === '/unsubscribe') {
+        var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
+        var row = findUserRow(userId);
+        users_sheet.getRange(row, 6).setValue('No'); 
+        
+        sendText(userId, "Unsubscribed :( Who hurt you?");        
       } else {
         if (check_name_room_validity(text)) {
           addUser(contents);
@@ -155,7 +174,7 @@ function addUser(data) {
     var total_credits = 5;
     var init_simp_count = 0;
   
-    sheet.appendRow([id, name, room, total_credits, init_simp_count]);
+    sheet.appendRow([id, name, room, total_credits, init_simp_count, 'No']);
   
     var text =
         'Hello ' +
@@ -433,12 +452,36 @@ function makeRequest(userID, data, room, remark) {
     var userRow = findUserRow(userID);
     
     users_sheet.getRange(userRow, 4).setValue(new_credits);
+  
+    var listOfSubs = subscribedUsers();
 
     if (remark === 0) {
-        sendText(userID, 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
+      sendText(userID, 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
+      for (i = 0; i < listOfSubs.length; i++) {        
+        if (listOfSubs[i] !== userID) {
+            sendText(listOfSubs[i], 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
+        }
+      }
     }
 }
     
+function subscribedUsers() {
+    var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
+    var rangeData = users_sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var searchRange = users_sheet.getRange(1, 1, lastRow, 6);
+    var rangeValues = searchRange.getValues();
+  
+    var res = [];
+  
+    for (i = 1; i < lastRow; i++) {
+      if (rangeValues[i][5] === 'Yes') {
+            res.push(parseInt(rangeValues[i][0]));
+        }
+    }
+    return res;
+  
+}
 function findUserRow(userID) {
     var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
     var rangeData = users_sheet.getDataRange();
