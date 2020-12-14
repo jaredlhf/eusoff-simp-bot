@@ -26,6 +26,14 @@ function doPost(e) {
         takeRequest(idCallback, data);
       } else if (command === 'complete') {
         completeRequest(idCallback, data);
+      } else if (command === 'remark')  {
+        var rem = data.split('-')[1].split(' ')[2];
+        if (rem === "0") { 
+          makeRequest(idCallback, data, userExists(idCallback).room, 0);
+        } else {
+          sendText(userID, 'Please key in "/remark YourRemark"!');
+          makeRequest(idCallback, data, userExists(idCallback).room, 1);
+        }
       }
     } else if (contents.message) {
       var chatID = contents.message.chat.id;
@@ -70,6 +78,12 @@ function doPost(e) {
         } else {
             sendText(chatID, 'Which request do you want to complete?', viewOwnTaken(userId));
         }
+      } else if (text.slice(0, 7) === '/remark') {
+        var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
+        var info = locateFinalUserFavour(userId);
+        active_request_sheet.getRange(info[0], 8).setValue(text.slice(7));        
+        
+        sendText(userId, 'Request made: ' + info[1] + ' \n' + info[2] + ' favour(s)\nRef number: ' + (parseInt(info[3]) - 2) + '\nRemark: ' + text.slice(7));
       } else {
         addUser(contents);
       }
@@ -242,6 +256,27 @@ function cancelRequest(row_data, userID) {
     }
 }
 // ------------------------------------
+// ----locates the final favour requested by the user and returns a list of data
+
+function locateFinalUserFavour(id) {  
+    var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
+    var rangeData = active_request_sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var lastColumn = rangeData.getLastColumn();
+    
+    var searchRange = active_request_sheet.getRange(2, 1, lastRow, 4);
+    var rangeValues = searchRange.getValues();
+  
+    for (i = lastRow - 1; i > 0; i--) {
+        if (rangeValues[i][3] === id) {
+            var row = parseInt(i) + 2;
+            var ref = rangeValues[i][0];
+            var request = rangeValues[i][1];
+            var favours = rangeValues[i][2];          
+            return [row, request, favours, ref];          
+        }
+    }  
+}
 
 // make_request
 // ------------------------------------
@@ -352,7 +387,7 @@ function addRemark(userID, data) {
     sendText(userID, 'Do you want to add any remarks?', remark_keyboard);
 }
 
-function makeRequest(userID, data, room) {
+function makeRequest(userID, data, room, remark) {
     var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
     var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
     var rangeData = active_request_sheet.getDataRange();
@@ -378,7 +413,9 @@ function makeRequest(userID, data, room) {
     
     users_sheet.getRange(userRow, 4).setValue(new_credits);
 
-    sendText(userID, 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
+    if (remark === 0) {
+        sendText(userID, 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
+    }
 }
     
 function findUserRow(userID) {
