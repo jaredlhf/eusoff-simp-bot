@@ -22,6 +22,8 @@ function doPost(e) {
         sendText(idCallback, cancelRequest(data.split('-')[1], userID));
       } else if (command === 'remark') {
         makeRequest(idCallback, data, userExists(idCallback).room);
+      } else if (command === 'take_request') {
+        takeRequest(idCallback, data);
       }
     } else if (contents.message) {
       var chatID = contents.message.chat.id;
@@ -44,7 +46,7 @@ function doPost(e) {
         sendText(
           chatID,
           "Welcome to Eusoff's Favour Bot! \nTo sign up /register \n" +
-          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /make_request"
+          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /make_request\n To take request /take_request"
         );
       } else if (text === '/view') {
         view(userId);
@@ -54,7 +56,13 @@ function doPost(e) {
         } else {
             sendText(chatID, 'Which request do you want to cancel?', viewOwn(userId));
         }
-      } else {
+      } else if (text === '/take_request'){
+        if (processRequest(userId) === false) {
+          sendText(chatID, 'You have no requests to cancel');
+        } else {
+          sendText(chatID, 'Which request do you want to take?', processRequest(userId));
+        }
+      }else {
         addUser(contents);
       }
     }
@@ -132,7 +140,7 @@ function addUser(data) {
         'Room: ' +
         room +
         '\n' +
-        'To make a request, use /makeRequest, view active requests use /viewActiveRequest & to delete a booking /delete';
+        'To make a request, use /make_request, view active requests use /viewActiveRequest & to delete a booking /delete';
   
       sendText(id, text);
 }
@@ -147,8 +155,6 @@ function view(userID) {
 
     var searchRange = sheet.getRange(2, 1, lastRow - 1, lastColumn);
     var rangeValues = searchRange.getValues();
-  
-    
 
     var active_requests = '';
     
@@ -164,7 +170,7 @@ function view(userID) {
         var name = curr_user.name;
       if (rangeValues[i][4] === 'Available') {
         active_requests = active_requests + ref + '. ' + request + "    " + favour + " favour(s) made by " + name + 
-          " at " + request_time + ' ' + request_date + ' ' + '\n\n';
+          " at " + request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + ' ' + '\n\n';
       }  
     }
     sendText(userID, active_requests);
@@ -194,7 +200,7 @@ function viewOwn(userID) {
         if (rangeValues[i][3] === userID && rangeValues[i][4] === "Available") {
             keyboard[count] = [
                 {
-                  text: rangeValues[i][1] + "    " + rangeValues[i][2] + " favour(s) made at " + request_time + ' ' + request_date + '\n',
+                  text: rangeValues[i][1] + "    " + rangeValues[i][2] + " favour(s) made at " + request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + '\n',
                   callback_data: 'cancel-' + i,
                 },
             ];
@@ -352,10 +358,6 @@ function makeRequest(userID, data, room) {
     var request = category_number_remark.split(' ')[0];
     var favours = category_number_remark.split(' ')[1];
     var remark = category_number_remark.split(' ')[2];
-    
-    if (remark === 1) {
-         var msg = addRemarkMessage();
-    }
 
     var new_credits = parseInt(credits) - parseInt(favours);
       
@@ -388,22 +390,79 @@ function findUserRow(userID) {
 }
 // ------------------------------------
 
+// take request
+// ------------------------------------
+function processRequest(userID) {
+    
+    var sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
+    var rangeData = sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var lastColumn = rangeData.getLastColumn();
+
+    var searchRange = sheet.getRange(2, 1, lastRow - 1, lastColumn);
+    var rangeValues = searchRange.getValues();
+
+    var count = 0;
+    var keyboard = [];
+  
+    for (i = 0; i < lastRow - 1; i++) {
+        var curr_user = userExists(rangeValues[i][3]);
+        var name = curr_user.name;
+        var request_date = rangeValues[i][5];
+        var request_time = rangeValues[i][6];
+      
+        if (rangeValues[i][3] !== userID && rangeValues[i][4] === "Available") {
+            keyboard[count] = [
+                {
+                  text: rangeValues[i][1] + "    " + rangeValues[i][2] + " favour(s) made by " + name + ' at '+ request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + '\n',
+                  callback_data: 'take_request-' + i,
+                },
+            ];
+            count++;
+        }
+    }
+              
+    var takeRequestKeyboard = {
+      inline_keyboard: keyboard,
+    };
+    if (count === 0) {
+      return false;
+    } else {
+      return takeRequestKeyboard;
+    }
+}
+              
+function takeRequest(userID, data) {
+    var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
+    var rangeData = active_request_sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var lastColumn = rangeData.getLastColumn();
+
+    var data_arr = data.split('-');
+    var ref_id = parseInt(data_arr[1]) + 1;
+          
+    active_request_sheet.getRange(ref_id, 5).setValue("Taken");
+
+    sendText(userID, 'Request taken');
+}
+// ------------------------------------
+  
 // return the curretn date and time
 function currentDateTime() {
     var dateObj = new Date();
     var month = dateObj.getMonth() + 1;
     var day = String(dateObj.getDate()).padStart(2, '0');
     var year = dateObj.getFullYear();
-    var date = day + '/' + month  + '/'+ year;
+    var date = day + '/' + month  + '/'+ year + 'Ew';
     var hour = dateObj.getHours();
     var min  = dateObj.getMinutes();
-    var time = hour + ':' + (min < 10 ? "0" + min : min);
+    var time = (hour < 10 ? "0" + hour : hour) + ':' + (min < 10 ? "0" + min : min) + 'Ew';
   
     
     return [date, time];
 }
 //
-// checking validity of data to prevent bugs
+// returns the user data so that we can use methods like user.name or user.total_credits
 // ------------------------------------
 function userExists(id) {
     var sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
