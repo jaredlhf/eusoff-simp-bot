@@ -24,6 +24,8 @@ function doPost(e) {
         makeRequest(idCallback, data, userExists(idCallback).room);
       } else if (command === 'take_request') {
         takeRequest(idCallback, data);
+      } else if (command === 'complete') {
+        completeRequest(idCallback, data);
       }
     } else if (contents.message) {
       var chatID = contents.message.chat.id;
@@ -46,7 +48,7 @@ function doPost(e) {
         sendText(
           chatID,
           "Welcome to Eusoff's Favour Bot! \nTo sign up /register \n" +
-          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /make_request\n To take request /take_request"
+          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /make_request\n To take request /take_request\n To complete /complete"
         );
       } else if (text === '/view') {
         view(userId);
@@ -56,13 +58,19 @@ function doPost(e) {
         } else {
             sendText(chatID, 'Which request do you want to cancel?', viewOwn(userId));
         }
-      } else if (text === '/take_request'){
+      } else if (text === '/take_request') {
         if (processRequest(userId) === false) {
           sendText(chatID, 'You have no requests to cancel');
         } else {
           sendText(chatID, 'Which request do you want to take?', processRequest(userId));
         }
-      }else {
+      } else if (text === '/complete') {
+        if (viewOwnTaken(userId) === false) {
+            sendText(chatID, 'You have no requests that are taken');
+        } else {
+            sendText(chatID, 'Which request do you want to complete?', viewOwnTaken(userId));
+        }
+      } else {
         addUser(contents);
       }
     }
@@ -434,14 +442,12 @@ function processRequest(userID) {
               
 function takeRequest(userID, data) {
     var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
-    var rangeData = active_request_sheet.getDataRange();
-    var lastRow = rangeData.getLastRow();
-    var lastColumn = rangeData.getLastColumn();
 
     var data_arr = data.split('-');
-    var ref_id = parseInt(data_arr[1]) + 1;
+    var ref_id = parseInt(data_arr[1]) + 2;
           
     active_request_sheet.getRange(ref_id, 5).setValue("Taken");
+    active_request_sheet.getRange(ref_id, 10).setValue(userID);
 
     sendText(userID, 'Request taken');
 }
@@ -489,6 +495,94 @@ function userExists(id) {
       }
     }
     return person;
+}
+// ------------------------------------
+
+// complete request
+// ------------------------------------
+function viewOwnTaken(userID) {
+    var sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
+    var rangeData = sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var lastColumn = rangeData.getLastColumn();
+
+    var searchRange = sheet.getRange(2, 1, lastRow - 1, lastColumn);
+    var rangeValues = searchRange.getValues();
+
+    var count = 0;
+    var keyboard = [];
+  
+    for (i = 0; i < lastRow - 1; i++) {
+        var request_date = rangeValues[i][5];
+        var request_time = rangeValues[i][6];
+      
+        if (rangeValues[i][3] === userID && rangeValues[i][4] === "Taken") {
+            keyboard[count] = [
+                {
+                  text: rangeValues[i][1] + "    " + rangeValues[i][2] + " favour(s) made at " + request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + '\n',
+                  callback_data: 'complete-' + i,
+                },
+            ];
+            count++;
+        }
+    }
+  
+    var takenKeyboard = {
+      inline_keyboard: keyboard,
+    };
+    if (count === 0) {
+      return false;
+    } else {
+      return takenKeyboard;
+    }
+}
+
+function completeRequest(userID, data) {
+    var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
+    var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
+
+    var data_arr = data.split('-');
+    var ref_id = parseInt(data_arr[1]);
+          
+    var rangeData = active_request_sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var lastColumn = rangeData.getLastColumn();
+
+    var searchRange = active_request_sheet.getRange(2, 1, lastRow - 1, lastColumn);
+    var rangeValues = searchRange.getValues();
+    
+    var slaveID = rangeValues[ref_id][9];
+    var slaveRow = findSlaveRow(userID, slaveID);
+    var slave = userExists(slaveID);
+    var credit = slave.total_credits;
+          
+    var pending_credit = rangeValues[ref_id][8];
+    var new_credits = credit + parseInt(pending_credit);
+    
+    var ref_plus_one = parseInt(ref_id) + 2;
+    var row_plus_one = parseInt(slaveRow) + 1;
+
+    active_request_sheet.getRange(ref_plus_one, 5).setValue('Completed');
+    active_request_sheet.getRange(ref_plus_one, 9).setValue(0);
+    users_sheet.getRange(row_plus_one + 1, 4).setValue(new_credits);
+
+    sendText(userID, 'Request complete');
+}
+
+function findSlaveRow(userID, slaveID) {
+    var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
+    var rangeData = users_sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var lastColumn = rangeData.getLastColumn();
+    
+    var searchRange = users_sheet.getRange(2, 1, lastRow - 1, lastColumn);
+    var rangeValues = searchRange.getValues();
+  
+    for (i = 1; i < lastRow; i++) {
+        if (rangeValues[i][0] === slaveID) {
+            return i;
+        }
+    }
 }
 // ------------------------------------
 
