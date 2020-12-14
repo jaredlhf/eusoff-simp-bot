@@ -60,7 +60,9 @@ function doPost(e) {
           "To take request /take_request\n" + 
           "To mark a request as complete /complete\n" +
           "To view the leaderboards /leaderboard\n" +
-          "To view the simp leaderboards /simp_leaderboard\n"
+          "To view the simp leaderboards /simp_leaderboard\n" + 
+          "To subscribe to favour updates /subscribe\n" + 
+          "To unsubscribe from updates /unsubscribe\n"
         );
       } else if (text === '/view') {
         view(userId);
