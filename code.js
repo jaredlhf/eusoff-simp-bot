@@ -54,7 +54,7 @@ function doPost(e) {
         sendText(
           chatID,
           "Welcome to Eusoff's Favour Bot! \nTo sign up /register \n" +
-          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /make_request\n To take request /take_request\n To complete /complete"
+          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /make_request\nTo take request /take_request\nTo mark a request as complete /complete"
         );
       } else if (text === '/view') {
         view(userId);
@@ -74,7 +74,7 @@ function doPost(e) {
         if (viewOwnTaken(userId) === false) {
             sendText(chatID, 'You have no requests that are taken');
         } else {
-            sendText(chatID, 'Which request do you want to complete?', viewOwnTaken(userId));
+            sendText(chatID, 'Which request do you want to mark as complete?', viewOwnTaken(userId));
         }
       } else if (text.slice(0, 7) === '/remark') {
         var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
@@ -107,8 +107,8 @@ function deleteWebhook() {
 
 // register
 // ------------------------------------
-function register(id) {
-    var user = userExists(id);
+function register(userID) {
+    var user = userExists(userID);
     var text = 'failed';
   
     if (Object.getOwnPropertyNames(user).length === 0) {
@@ -116,7 +116,7 @@ function register(id) {
         "Welcome to Eusoff Favour Bot. You do not exist in our system yet. Let's change that." +
         '\n\n' +
         '<b> What is your name and room number? </b>';
-      sendText(id, text);
+      sendText(userID, text);
       text =
         'Please input in the format: <b> Name A101 </b>, for example: John A101';
     } else {
@@ -128,13 +128,18 @@ function register(id) {
         'Your room number is ' +
         user.room +
         '\n\n' +
+        'Would you like to check the active requests? /view' +
+        '\n' +
         'Would you like to make a request? /make_request' +
         '\n' +
-        'Would you like to cancel your booking? /cancel' +
+        'Would you like to cancel your request? /cancel' +
         '\n' +
-        'Would you like to check the active requests? /view';
+        'Would you like to take up a request? /take_request' +
+        '\n' +
+        'Would you like to mark a request as complete? /complete' +
+        '\n';
     }
-    sendText(id, text);
+    sendText(userID, text);
 }
 
 function addUser(data) {
@@ -163,8 +168,17 @@ function addUser(data) {
         '\n' +
         'Room: ' +
         room +
+        '\n\n' +
+        'Would you like to check the active requests? /view' +
         '\n' +
-        'To make a request, use /make_request, view active requests use /viewActiveRequest & to delete a booking /delete';
+        'Would you like to make a request? /make_request' +
+        '\n' +
+        'Would you like to cancel your request? /cancel' +
+        '\n' +
+        'Would you like to take up a request? /take_request' +
+        '\n' +
+        'Would you like to mark a request as complete? /complete' +
+        '\n';
   
       sendText(id, text);
 }
@@ -194,8 +208,8 @@ function view(userID) {
         var curr_user = userExists(rangeValues[i][3]);
         var name = curr_user.name;
       if (rangeValues[i][4] === 'Available') {
-        active_requests = active_requests + ref + '. ' + request + "-" + favour + " favour(s) \nmade by " + name + 
-          " at " + request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + ' ' + '\n' + remark + '\n\n';
+        active_requests = active_requests + ref + '. ' + request + " - " + favour + " favour(s) \nmade by " + name + 
+          " at " + request_time.slice(0, -2) + ', ' + request_date.slice(0, -2) + ' ' + '\n' + 'Remark: ' + remark + '\n\n';
       }  
     }
     sendText(userID, active_requests);
@@ -226,8 +240,7 @@ function viewOwn(userID) {
         if (rangeValues[i][3] === userID && rangeValues[i][4] === "Available") {
             keyboard[count] = [
                 {
-                  text: rangeValues[i][1] + "-" + rangeValues[i][2] + " favour(s) \nmade at " + 
-                        request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + '\n' + remark,
+                  text: rangeValues[i][1] + " (" + rangeValues[i][2] + " fav) " + '\n '+ request_time.slice(0, -2) + ", " + request_date.slice(0, -2),
                   callback_data: 'cancel-' + i,
                 },
             ];
@@ -262,7 +275,7 @@ function cancelRequest(row_data, userID) {
 }
 // ------------------------------------
 
-function locateFinalUserFavour(id) {  
+function locateFinalUserFavour(userID) {  
     var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
     var rangeData = active_request_sheet.getDataRange();
     var lastRow = rangeData.getLastRow();
@@ -272,7 +285,7 @@ function locateFinalUserFavour(id) {
     var rangeValues = searchRange.getValues();
   
     for (i = lastRow - 1; i > 0; i--) {
-        if (rangeValues[i][3] === id) {
+        if (rangeValues[i][3] === userID) {
             var row = parseInt(i) + 2;
             var ref = rangeValues[i][0];
             var request = rangeValues[i][1];
@@ -394,7 +407,7 @@ function addRemark(userID, data) {
     sendText(userID, 'Do you want to add any remarks?', remark_keyboard);
 }
                 
-function makeRequest(userID, data, room) {
+function makeRequest(userID, data, room, remark) {
     var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
     var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
     var rangeData = active_request_sheet.getDataRange();
@@ -407,14 +420,14 @@ function makeRequest(userID, data, room) {
     var category_number_remark = data_arr[1];
     var request = category_number_remark.split(' ')[0];
     var favours = category_number_remark.split(' ')[1];
-    var remark = category_number_remark.split(' ')[2];
+    var remark_placeholder = '-';
 
     var new_credits = parseInt(credits) - parseInt(favours);
       
     var status = 'Available'    
     var now = currentDateTime();
 
-    active_request_sheet.appendRow([lastRow, request, favours, userID, status, now[0], now[1], remark, favours]);
+    active_request_sheet.appendRow([lastRow, request, favours, userID, status, now[0], now[1], remark_placeholder, favours]);
     // update the user's new credits after minus the favour used
     var userRow = findUserRow(userID);
     
@@ -466,8 +479,8 @@ function processRequest(userID) {
         if (rangeValues[i][3] !== userID && rangeValues[i][4] === "Available") {
             keyboard[count] = [
                 {
-                  text: rangeValues[i][1] + "    " + rangeValues[i][2] + " favour(s)\nmade by " 
-                  + name + ' at '+ request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + '\n',
+                  text: rangeValues[i][1] + " (" + rangeValues[i][2] + " fav) " 
+                  + name + '\n '+ request_time.slice(0, -2),
                   callback_data: 'take_request-' + i,
                 },
             ];
@@ -515,7 +528,7 @@ function currentDateTime() {
 //
 // returns the user data so that we can use methods like user.name or user.total_credits
 // ------------------------------------
-function userExists(id) {
+function userExists(userID) {
     var sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
     var rangeData = sheet.getDataRange();
     var lastColumn = rangeData.getLastColumn();
@@ -531,7 +544,7 @@ function userExists(id) {
     var person = {};
   
     for (j = 0; j < lastRow - 1; j++) {
-      if (rangeValues[j][0] === id) {
+      if (rangeValues[j][0] === userID) {
         person.chatID = rangeValues[j][0];
         person.name = rangeValues[j][1];
         person.room = rangeValues[j][2];
@@ -564,7 +577,7 @@ function viewOwnTaken(userID) {
         if (rangeValues[i][3] === userID && rangeValues[i][4] === "Taken") {
             keyboard[count] = [
                 {
-                  text: rangeValues[i][1] + "    " + rangeValues[i][2] + " favour(s) made at " + request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + '\n',
+                  text: rangeValues[i][1] + " (" + rangeValues[i][2] + " fav), " + request_time.slice(0, -2) + ", " + request_date.slice(0, -2),
                   callback_data: 'complete-' + i,
                 },
             ];
@@ -667,12 +680,12 @@ function check_name_room_validity(text) {
 }
       
 function is_one_word(text) {
-    var arr = text.split(' ');
-    if (arr == text) {
-        return true;
-    } else {
-        return false;
-    }
+  var arr = text.split(' ');
+  if (arr == text) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 function is_valid_room(block, floor) {
