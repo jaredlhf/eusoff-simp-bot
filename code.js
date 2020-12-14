@@ -21,12 +21,6 @@ function doPost(e) {
       } else if (command === 'cancel') {
         sendText(idCallback, cancelRequest(data.split('-')[1], userID));
       } else if (command === 'remark') {
-        makeRequest(idCallback, data, userExists(idCallback).room);
-      } else if (command === 'take_request') {
-        takeRequest(idCallback, data);
-      } else if (command === 'complete') {
-        completeRequest(idCallback, data);
-      } else if (command === 'remark')  {
         var rem = data.split('-')[1].split(' ')[2];
         if (rem === "0") { 
           makeRequest(idCallback, data, userExists(idCallback).room, 0);
@@ -34,6 +28,10 @@ function doPost(e) {
           sendText(userID, 'Please key in "/remark YourRemark"!');
           makeRequest(idCallback, data, userExists(idCallback).room, 1);
         }
+      } else if (command === 'take_request') {
+        takeRequest(idCallback, data);
+      } else if (command === 'complete') {
+        completeRequest(idCallback, data);
       }
     } else if (contents.message) {
       var chatID = contents.message.chat.id;
@@ -56,7 +54,7 @@ function doPost(e) {
         sendText(
           chatID,
           "Welcome to Eusoff's Favour Bot! \nTo sign up /register \n" +
-          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /make_request\nTo take request /take_request\nTo complete /complete"
+          "To view active requests /view \nTo delete your current requests /cancel\nTo make request /make_request\n To take request /take_request\n To complete /complete"
         );
       } else if (text === '/view') {
         view(userId);
@@ -85,7 +83,11 @@ function doPost(e) {
         
         sendText(userId, 'Request made: ' + info[1] + ' \n' + info[2] + ' favour(s)\nRef number: ' + (parseInt(info[3]) - 2) + '\nRemark: ' + text.slice(7));
       } else {
-        addUser(contents);
+        if (check_name_room_validity(text)) {
+          addUser(contents);
+        } else {
+          sendText(chatID, 'Invalid');
+        }
       }
     }
 }
@@ -187,12 +189,13 @@ function view(userID) {
       
         var request_date = rangeValues[i][5];
         var request_time = rangeValues[i][6];
+        var remark = rangeValues[i][7];
       
         var curr_user = userExists(rangeValues[i][3]);
         var name = curr_user.name;
       if (rangeValues[i][4] === 'Available') {
-        active_requests = active_requests + ref + '. ' + request + "    " + favour + " favour(s) made by " + name + 
-          " at " + request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + ' ' + '\n\n';
+        active_requests = active_requests + ref + '. ' + request + "-" + favour + " favour(s) \nmade by " + name + 
+          " at " + request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + ' ' + '\n' + remark + '\n\n';
       }  
     }
     sendText(userID, active_requests);
@@ -218,11 +221,13 @@ function viewOwn(userID) {
     for (i = 0; i < lastRow - 1; i++) {
         var request_date = rangeValues[i][5];
         var request_time = rangeValues[i][6];
+        var remark = rangeValues[i][7];
       
         if (rangeValues[i][3] === userID && rangeValues[i][4] === "Available") {
             keyboard[count] = [
                 {
-                  text: rangeValues[i][1] + "    " + rangeValues[i][2] + " favour(s) made at " + request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + '\n',
+                  text: rangeValues[i][1] + "-" + rangeValues[i][2] + " favour(s) \nmade at " + 
+                        request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + '\n' + remark,
                   callback_data: 'cancel-' + i,
                 },
             ];
@@ -256,7 +261,6 @@ function cancelRequest(row_data, userID) {
     }
 }
 // ------------------------------------
-// ----locates the final favour requested by the user and returns a list of data
 
 function locateFinalUserFavour(id) {  
     var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
@@ -276,7 +280,7 @@ function locateFinalUserFavour(id) {
             return [row, request, favours, ref];          
         }
     }  
-}
+}              
 
 // make_request
 // ------------------------------------
@@ -314,7 +318,9 @@ function chooseCategory(userID) {
 }
 
 function giveFavours(userID, data) {
+            // data - category-dabao
     var data_arr = data.split("-");
+            // dabao
     var category = data_arr[1];
             
     var curr_user = userExists(userID);
@@ -325,6 +331,7 @@ function giveFavours(userID, data) {
             [
             {
                 text: '1',
+                 // favour-dabao 1
                 callback_data: 'favour-' + category + ' 1',
             },
             ],
@@ -386,8 +393,8 @@ function addRemark(userID, data) {
     
     sendText(userID, 'Do you want to add any remarks?', remark_keyboard);
 }
-
-function makeRequest(userID, data, room, remark) {
+                
+function makeRequest(userID, data, room) {
     var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
     var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
     var rangeData = active_request_sheet.getDataRange();
@@ -459,7 +466,8 @@ function processRequest(userID) {
         if (rangeValues[i][3] !== userID && rangeValues[i][4] === "Available") {
             keyboard[count] = [
                 {
-                  text: rangeValues[i][1] + "    " + rangeValues[i][2] + " favour(s) made by " + name + ' at '+ request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + '\n',
+                  text: rangeValues[i][1] + "    " + rangeValues[i][2] + " favour(s)\nmade by " 
+                  + name + ' at '+ request_time.slice(0, -2) + ' ' + request_date.slice(0, -2) + '\n',
                   callback_data: 'take_request-' + i,
                 },
             ];
@@ -636,4 +644,46 @@ function sendText(chatId, text, keyBoard) {
       },
     };
     return UrlFetchApp.fetch(telegramUrl + '/', data);
+}
+      
+function check_name_room_validity(text) {
+    if (is_one_word(text)) {
+      return false;
+    } else {
+      var arr = text.split(' ');
+      var name = arr[0];
+      var first_letter_of_name = name.slice(0, 1);
+  
+      var room = arr[1];
+      var block = room.slice(0, 1);
+      var floor = parseInt(room.slice(1, 2));
+  
+      if (first_letter_of_name !== '/' && is_valid_room(block, floor)) {
+          return true;
+      } else {
+          return false;
+      }
+    }  
+}
+      
+function is_one_word(text) {
+    var arr = text.split(' ');
+    if (arr == text) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function is_valid_room(block, floor) {
+    if (block === 'A' || block === 'B' || block === 'C' || block === 'D' || block === 'E' ||
+        block === 'a' || block === 'b' || block === 'c' || block === 'd' || block === 'e') {
+            if (floor === '1' || floor === '2' || floor === '3' || floor === '4') {
+                return false;
+            } else {
+                return false;
+            }
+    } else {
+        return false;
+    }
 }
