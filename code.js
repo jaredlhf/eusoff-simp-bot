@@ -366,6 +366,18 @@ function chooseCategory(userID) {
               callback_data: 'category-Open_Gate',
             },
           ],
+          [
+            {
+              text: 'Distract Barbara',
+              callback_data: 'category-Distract_Barbara',
+            },
+          ],
+          [
+            {
+              text: 'Miscellaneous',
+              callback_data: 'category-Miscellaneous',
+            },
+          ],
         ],
     };
 
