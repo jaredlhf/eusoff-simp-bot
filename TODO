@@ -7,7 +7,7 @@
 4. Implement 'take request' so a registered user can take an active request, the active request's status will change to 
    'Taken' and when the request is done, status changes to 'Completed' and credit is added to the user's total credits. Done!
 
-5. Implement a simp system where a user can choose to 'simp' for an active request made by the opposite gender by not taking any credits.
+5. Implement a simp system where a user can choose to 'simp' for an active request made by the opposite gender by not taking any credits. done!
 
 6. Implement a normal leaderboard and a simp leaderboard. Done!
 
