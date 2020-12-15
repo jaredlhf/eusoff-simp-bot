@@ -1,7 +1,7 @@
-var TOKEN = "1326277324:AAGIGMpXIega-CnhljzToqZAZ-cV4RGPkmQ";
+var TOKEN = "1488628659:AAGG49VW24lhVNx1ZcBkB-e_ciI7Zi4T7f4";
 var sheet_id = "1MiPByQzVG-Zwe0vDSYjFSU-gfTt5uwH8JKQY61tk9JQ";
 var telegramUrl = "https://api.telegram.org/bot" + TOKEN;
-var webAppUrl = "https://script.google.com/macros/s/AKfycbyP7yjkj0kTjpODuAlFUQvZFVxjxziJO-8qOmwByAmjBGL5EHA/exec";
+var webAppUrl = "https://script.google.com/macros/s/AKfycbz_PUrcc0lgCfoTFSMd5DtkiU1x0rf5HntUvJ67YuD9jJ5vcm8/exec";
 
 // main function to deal with users
 function doPost(e) {
@@ -179,7 +179,7 @@ function register(userID) {
         'Would you like to take up a request? /take_request' +
         '\n' +
         'Would you like to mark a request as complete? /complete' +
-        '\n'
+        '\n' + 
         'Would you like to simp? /simp' + 
         '\n';
     }
