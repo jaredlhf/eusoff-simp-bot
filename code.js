@@ -23,10 +23,10 @@ function doPost(e) {
       } else if (command === 'remark') {
         var rem = data.split('-')[1].split(' ')[2];
         if (rem === "0") { 
-          makeRequest(idCallback, data, userExists(idCallback).room, 0);
+          makeRequest(idCallback, data, 0);
         } else {
           sendText(userID, 'Please key in "/remark YourRemark"!');
-          makeRequest(idCallback, data, userExists(idCallback).room, 1);
+          makeRequest(idCallback, data, 1);
         }
       } else if (command === 'take_request') {
         takeRequest(idCallback, data);
@@ -59,15 +59,15 @@ function doPost(e) {
           "Welcome to Eusoff's Favours Bot! \nTo sign up /register \n" +
           "To view active requests /view \n" + 
           "To delete your current requests /cancel\n" +
+          "To mark a request as complete /complete\n\n" +
           "To make request /make_request\n" + 
           "To take request /take_request\n" + 
-          "To mark a request as complete /complete\n" +
-          "To view the leaderboards /leaderboard\n" +
+          "To simp /simp\n" +
+          "To view the leaderboards /leaderboard\n\n" +
           "To view the simp leaderboards /simp_leaderboard\n" + 
           "To subscribe to favour updates /subscribe\n" + 
-          "To unsubscribe from updates /unsubscribe\n" + 
-          "To simp /simp\n"
-        );
+          "To unsubscribe from updates /unsubscribe\n"
+          );
       } else if (text === '/view') {
         view(userId);
       } else if (text === '/cancel') {
@@ -170,18 +170,16 @@ function register(userID) {
         'Your room number is ' +
         user.room +
         '\n\n' +
-        'Would you like to check the active requests? /view' +
-        '\n' +
-        'Would you like to make a request? /make_request' +
-        '\n' +
-        'Would you like to cancel your request? /cancel' +
-        '\n' +
-        'Would you like to take up a request? /take_request' +
-        '\n' +
-        'Would you like to mark a request as complete? /complete' +
-        '\n' + 
-        'Would you like to simp? /simp' + 
-        '\n';
+        "To view active requests /view \n" + 
+        "To delete your current requests /cancel\n" +
+        "To mark a request as complete /complete\n" +
+        "To make request /make_request\n" + 
+        "To take request /take_request\n\n" + 
+        "To simp /simp\n" +
+        "To view the leaderboards /leaderboard\n" +
+        "To view the simp leaderboards /simp_leaderboard\n" + 
+        "To subscribe to favour updates /subscribe\n" + 
+        "To unsubscribe from updates /unsubscribe\n";
     }
     sendText(userID, text);
 }
@@ -213,18 +211,16 @@ function addUser(data) {
         'Room: ' +
         room +
         '\n\n' +
-        'Would you like to check the active requests? /view' +
-        '\n' +
-        'Would you like to make a request? /make_request' +
-        '\n' +
-        'Would you like to cancel your request? /cancel' +
-        '\n' +
-        'Would you like to take up a request? /take_request' +
-        '\n' +
-        'Would you like to mark a request as complete? /complete' +
-        '\n' + 
-        'Would you like to simp? /simp' + 
-        '\n';
+        "To view active requests /view \n" + 
+        "To delete your current requests /cancel\n" +
+        "To mark a request as complete /complete\n" +
+        "To make request /make_request\n" + 
+        "To take request /take_request\n\n" + 
+        "To simp /simp\n" +
+        "To view the leaderboards /leaderboard\n" +
+        "To view the simp leaderboards /simp_leaderboard\n" + 
+        "To subscribe to favour updates /subscribe\n" + 
+        "To unsubscribe from updates /unsubscribe\n";
   
       sendText(id, text);
 }
@@ -286,7 +282,7 @@ function viewOwn(userID) {
         if (rangeValues[i][3] === userID && rangeValues[i][4] === "Available") {
             keyboard[count] = [
                 {
-                  text: rangeValues[i][1] + " (" + rangeValues[i][2] + " fav) " + '\n '+ request_time.slice(0, -2) + ", " + request_date.slice(0, -2),
+                  text: rangeValues[i][1] + " (" + rangeValues[i][2] + " cr) " + '\n '+ request_time.slice(0, -2) + ", " + request_date.slice(0, -2),
                   callback_data: 'cancel-' + i,
                 },
             ];
@@ -453,7 +449,7 @@ function addRemark(userID, data) {
     sendText(userID, 'Do you want to add any remarks?', remark_keyboard);
 }
                 
-function makeRequest(userID, data, room, remark) {
+function makeRequest(userID, data, remark) {
     var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
     var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
     var rangeData = active_request_sheet.getDataRange();
@@ -550,7 +546,7 @@ function processRequest(userID) {
         if (rangeValues[i][3] !== userID && rangeValues[i][4] === "Available") {
             keyboard[count] = [
                 {
-                  text: rangeValues[i][1] + " (" + rangeValues[i][2] + " fav) " 
+                  text: rangeValues[i][1] + " (" + rangeValues[i][2] + " cr) " 
                   + name + '\n '+ request_time.slice(0, -2),
                   callback_data: 'take_request-' + i,
                 },
@@ -651,7 +647,7 @@ function viewOwnTaken(userID) {
         if (rangeValues[i][3] === userID && rangeValues[i][4] === "Taken") {
             keyboard[count] = [
                 {
-                  text: rangeValues[i][1] + " (" + rangeValues[i][2] + " fav), " + request_time.slice(0, -2) + ", " + request_date.slice(0, -2),
+                  text: rangeValues[i][1] + " (" + rangeValues[i][2] + " cr), " + request_time.slice(0, -2) + ", " + request_date.slice(0, -2),
                   callback_data: 'complete-' + i,
                 },
             ];
@@ -854,7 +850,7 @@ function processSimpRequest(userID) {
         if (rangeValues[i][3] !== userID && rangeValues[i][4] === "Available") {
             keyboard[count] = [
                 {
-                  text: rangeValues[i][1] + " (" + rangeValues[i][2] + " fav) " 
+                  text: rangeValues[i][1] + " (" + rangeValues[i][2] + " cr) " 
                   + requestorName + '\n '+ request_time.slice(0, -2),
                   callback_data: 'simp-' + i + ' ' + gender_diff,
                 },
