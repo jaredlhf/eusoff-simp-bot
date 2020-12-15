@@ -32,7 +32,10 @@ function doPost(e) {
         takeRequest(idCallback, data);
       } else if (command === 'complete') {
         completeRequest(idCallback, data);
+      } else if (command === 'simp') {
+        takeSimpRequest(idCallback, data);
       }
+
     } else if (contents.message) {
       var chatID = contents.message.chat.id;
       var text = contents.message.text;
@@ -62,7 +65,8 @@ function doPost(e) {
           "To view the leaderboards /leaderboard\n" +
           "To view the simp leaderboards /simp_leaderboard\n" + 
           "To subscribe to favour updates /subscribe\n" + 
-          "To unsubscribe from updates /unsubscribe\n"
+          "To unsubscribe from updates /unsubscribe\n" + 
+          "To simp /simp\n"
         );
       } else if (text === '/view') {
         view(userId);
@@ -74,7 +78,7 @@ function doPost(e) {
         }
       } else if (text === '/take_request') {
         if (processRequest(userId) === false) {
-          sendText(chatID, 'You have no requests to cancel');
+          sendText(chatID, 'You have no requests to take');
         } else {
           sendText(chatID, 'Which request do you want to take?', processRequest(userId));
         }
@@ -114,6 +118,12 @@ function doPost(e) {
         sendText(chatID, getLeaderboardRow(userID));
       } else if (text === '/simp_leaderboard') {
         sendText(chatID, getSimpLeaderboardRow(userID));
+      } else if (text === '/simp') {
+        if (processSimpRequest(userId) === false) {
+            sendText(chatID, 'You have no requests to take');
+          } else {
+            sendText(chatID, 'Which request do you want to take?', processSimpRequest(userId));
+          }
       } else {
         if (check_name_room_validity(text)) {
           addUser(contents);
@@ -169,6 +179,8 @@ function register(userID) {
         'Would you like to take up a request? /take_request' +
         '\n' +
         'Would you like to mark a request as complete? /complete' +
+        '\n'
+        'Would you like to simp? /simp' + 
         '\n';
     }
     sendText(userID, text);
@@ -210,6 +222,8 @@ function addUser(data) {
         'Would you like to take up a request? /take_request' +
         '\n' +
         'Would you like to mark a request as complete? /complete' +
+        '\n' + 
+        'Would you like to simp? /simp' + 
         '\n';
   
       sendText(id, text);
@@ -494,6 +508,7 @@ function subscribedUsers() {
     return res;
   
 }
+
 function findUserRow(userID) {
     var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
     var rangeData = users_sheet.getDataRange();
@@ -568,6 +583,7 @@ function takeRequest(userID, data) {
 // ------------------------------------
   
 // return the curretn date and time
+// ---------------------------------------
 function currentDateTime() {
     var dateObj = new Date();
     var month = dateObj.getMonth() + 1;
@@ -581,7 +597,8 @@ function currentDateTime() {
     
     return [date, time];
 }
-//
+// ---------------------------------------
+
 // returns the user data so that we can use methods like user.name or user.total_credits
 // ------------------------------------
 function userExists(userID) {
@@ -605,6 +622,7 @@ function userExists(userID) {
         person.name = rangeValues[j][1];
         person.room = rangeValues[j][2];
         person.total_credits = rangeValues[j][3];
+        person.simp_points = rangeValues[j][4];
         break;
       }
     }
@@ -692,7 +710,7 @@ function findSlaveRow(userID, slaveID) {
     var searchRange = users_sheet.getRange(2, 1, lastRow - 1, lastColumn);
     var rangeValues = searchRange.getValues();
   
-    for (i = 1; i < lastRow; i++) {
+    for (i = 0; i < lastRow; i++) {
         if (rangeValues[i][0] === slaveID) {
             return i;
         }
@@ -701,6 +719,7 @@ function findSlaveRow(userID, slaveID) {
 // ------------------------------------
 
 // send text function
+// ---------------------------------------
 function sendText(chatId, text, keyBoard) {
     var data = {
       method: 'post',
@@ -714,7 +733,10 @@ function sendText(chatId, text, keyBoard) {
     };
     return UrlFetchApp.fetch(telegramUrl + '/', data);
 }
-      
+// ---------------------------------------
+
+// checks input validity
+// ---------------------------------------
 function check_name_room_validity(text) {
     if (is_one_word(text)) {
       return false;
@@ -756,6 +778,7 @@ function is_valid_room(block, floor) {
         return false;
     }
 }
+// ---------------------------------------
 
 // ---------------------------------------
 // Leaderboard
@@ -777,6 +800,7 @@ function getLeaderboardRow(userID) {
   return result;
  
 }
+// ---------------------------------------
    
 // ---------------------------------------
 // Simp Leaderboard
@@ -798,3 +822,101 @@ function getSimpLeaderboardRow(userID) {
   return result;
  
 }
+// ---------------------------------------
+
+// Simp
+// ---------------------------------------
+function processSimpRequest(userID) {
+    
+    var sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
+    var rangeData = sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var lastColumn = rangeData.getLastColumn();
+
+    var searchRange = sheet.getRange(2, 1, lastRow - 1, lastColumn);
+    var rangeValues = searchRange.getValues();
+
+    var count = 0;
+    var keyboard = [];
+
+    var curr_user = userExists(userID);
+    var userFloor = curr_user.room.slice(1, 2);
+  
+    for (i = 0; i < lastRow - 1; i++) {
+        var requestor = userExists(rangeValues[i][3]);
+        var requestorName = requestor.name;
+        var requestorFloor = requestor.room.slice(1, 2);
+
+        var request_time = rangeValues[i][6];
+
+        var gender_diff = oppositeGender(userFloor, requestorFloor);
+      
+        if (rangeValues[i][3] !== userID && rangeValues[i][4] === "Available") {
+            keyboard[count] = [
+                {
+                  text: rangeValues[i][1] + " (" + rangeValues[i][2] + " fav) " 
+                  + requestorName + '\n '+ request_time.slice(0, -2),
+                  callback_data: 'simp-' + i + ' ' + gender_diff,
+                },
+            ];
+            count++;
+        }
+    }
+              
+    var simpKeyboard = {
+      inline_keyboard: keyboard,
+    };
+    if (count === 0) {
+      return false;
+    } else {
+      return simpKeyboard;
+    }
+}
+              
+function takeSimpRequest(userID, data) {
+    var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
+    var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
+
+    var user = userExists(userID);
+    var simp_points = user.simp_points;
+    var new_simp_points = simp_points + 1;      
+
+    var rangeData = active_request_sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var lastColumn = rangeData.getLastColumn();
+
+    var searchRange = active_request_sheet.getRange(2, 1, lastRow - 1, lastColumn);
+    var rangeValues = searchRange.getValues();
+
+    var data_arr = data.split('-');
+    var ref_id = parseInt(data_arr[1].split(' ')[0]);
+    var gender_diff = data_arr[1].split(' ')[1];
+    var pending_credit = rangeValues[ref_id][8];
+
+    var userRow = parseInt(findUserRow(userID));
+          
+    active_request_sheet.getRange(ref_id + 2, 9).setValue(0);
+    active_request_sheet.getRange(ref_id + 2, 5).setValue("Taken");
+    active_request_sheet.getRange(ref_id + 2, 10).setValue(userID);
+    
+    users_sheet.getRange(userRow, 5).setValue(new_simp_points);
+
+    sendText(userID, 'Request taken');
+}
+
+function oppositeGender(userFloor, requestorFloor) {
+    if (requestorFloor === '2' || requestorFloor === '3') {
+        if (userFloor === '1' || userFloor === '4') {
+            return 'o';
+        } else {
+            return 's';
+        }
+    } else {
+        if (userFloor === '2' || userFloor === '3') {
+            return 'o';
+        } else {
+            return 's';
+        }
+    }
+}
+// ---------------------------------------
