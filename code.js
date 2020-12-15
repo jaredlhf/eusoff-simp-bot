@@ -15,8 +15,8 @@ function doPost(e) {
       var command = data.split('-')[0];
       
       if (command === 'category') {
-        giveFavours(idCallback, data);
-      } else if (command === 'favour') {
+        giveCredit(idCallback, data);
+      } else if (command === 'credit') {
         addRemark(idCallback, data);
       } else if (command === 'cancel') {
         sendText(idCallback, cancelRequest(data.split('-')[1], userID));
@@ -56,7 +56,7 @@ function doPost(e) {
       } else if (text === '/start') {
         sendText(
           chatID,
-          "Welcome to Eusoff's Favour Bot! \nTo sign up /register \n" +
+          "Welcome to Eusoff's Favours Bot! \nTo sign up /register \n" +
           "To view active requests /view \n" + 
           "To delete your current requests /cancel\n" +
           "To make request /make_request\n" + 
@@ -90,15 +90,15 @@ function doPost(e) {
         }
       } else if (text.slice(0, 7) === '/remark') {
         var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
-        var info = locateFinalUserFavour(userId);
+        var info = locateFinalUserCredit(userId);
         active_request_sheet.getRange(info[0], 8).setValue(text.slice(7));    
         
         var listOfSubs = subscribedUsers();
         
-        sendText(userId, 'Request made: ' + info[1] + ' \n' + info[2] + ' favour(s)\nRef number: ' + (parseInt(info[3]) - 2) + '\nRemark: ' + text.slice(7));
+        sendText(userId, 'Request made: ' + info[1] + ' \n' + info[2] + ' credit(s)\nRef number: ' + (parseInt(info[3]) - 2) + '\nRemark: ' + text.slice(7));
         for (i = 0; i < listOfSubs.length; i++) {        
           if (listOfSubs[i] !== userId) {
-            sendText(listOfSubs[i], 'Request made: ' + info[1] + ' \n' + info[2] + ' favour(s)\nRef number: ' + (parseInt(info[3]) - 2) + '\nRemark: ' + text.slice(7));
+            sendText(listOfSubs[i], 'Request made: ' + info[1] + ' \n' + info[2] + ' credit(s)\nRef number: ' + (parseInt(info[3]) - 2) + '\nRemark: ' + text.slice(7));
           }
         }
         
@@ -155,7 +155,7 @@ function register(userID) {
   
     if (Object.getOwnPropertyNames(user).length === 0) {
       text =
-        "Welcome to Eusoff Favour Bot. You do not exist in our system yet. Let's change that." +
+        "Welcome to Eusoff Favours Bot. You do not exist in our system yet. Let's change that." +
         '\n\n' +
         '<b> What is your name and room number? </b>';
       sendText(userID, text);
@@ -203,7 +203,7 @@ function addUser(data) {
     var text =
         'Hello ' +
         name +
-        '! You are successfully added to FavourBot.' +
+        '! You are successfully added to Favours Bot.' +
         '\n\n' +
         'Please check your details.' +
         '\n' +
@@ -245,7 +245,7 @@ function view(userID) {
     for (i = 0; i < lastRow - 1; i++) {
         var ref = rangeValues[i][0]
         var request = rangeValues[i][1];
-        var favour = rangeValues[i][2];
+        var credit = rangeValues[i][2];
       
         var request_date = rangeValues[i][5];
         var request_time = rangeValues[i][6];
@@ -254,7 +254,7 @@ function view(userID) {
         var curr_user = userExists(rangeValues[i][3]);
         var name = curr_user.name;
       if (rangeValues[i][4] === 'Available') {
-        active_requests = active_requests + ref + '. ' + request + " - " + favour + " favour(s) \nmade by " + name + 
+        active_requests = active_requests + ref + '. ' + request + " - " + credit + " credit(s) \nmade by " + name + 
           " at " + request_time.slice(0, -2) + ', ' + request_date.slice(0, -2) + ' ' + '\n' + 'Remark: ' + remark + '\n\n';
       }  
     }
@@ -321,7 +321,7 @@ function cancelRequest(row_data, userID) {
 }
 // ------------------------------------
 
-function locateFinalUserFavour(userID) {  
+function locateFinalUserCredit(userID) {  
     var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
     var rangeData = active_request_sheet.getDataRange();
     var lastRow = rangeData.getLastRow();
@@ -335,8 +335,8 @@ function locateFinalUserFavour(userID) {
             var row = parseInt(i) + 2;
             var ref = rangeValues[i][0];
             var request = rangeValues[i][1];
-            var favours = rangeValues[i][2];          
-            return [row, request, favours, ref];          
+            var credit = rangeValues[i][2];          
+            return [row, request, credit, ref];          
         }
     }  
 }              
@@ -376,7 +376,7 @@ function chooseCategory(userID) {
     sendText(userID, 'What Category?', category_keyboard);
 }
 
-function giveFavours(userID, data) {
+function giveCredit(userID, data) {
             // data - category-dabao
     var data_arr = data.split("-");
             // dabao
@@ -390,20 +390,20 @@ function giveFavours(userID, data) {
             [
             {
                 text: '1',
-                 // favour-dabao 1
-                callback_data: 'favour-' + category + ' 1',
+                 // credit-dabao 1
+                callback_data: 'credit-' + category + ' 1',
             },
             ],
             [
             {
                 text: '2',
-                callback_data: 'favour-' + category + ' 2',
+                callback_data: 'credit-' + category + ' 2',
             },
             ],
             [
             {
                 text: '3',
-                callback_data: 'favour-' + category + ' 3',
+                callback_data: 'credit-' + category + ' 3',
             },
             ],
         ],
@@ -414,7 +414,7 @@ function giveFavours(userID, data) {
           keyboard[i - 1] = [
               {
                 text: i,
-                callback_data: 'favour-' + category + ' ' + i,
+                callback_data: 'credit-' + category + ' ' + i,
               },
           ];
     }
@@ -424,9 +424,9 @@ function giveFavours(userID, data) {
     };
               
     if (credits >= 3) {
-        sendText(userID, 'How many favours?', keyboard_1);
+        sendText(userID, 'How many credits?', keyboard_1);
     } else {
-        sendText(userID, 'How many favours?', keyboard_2);
+        sendText(userID, 'How many credits?', keyboard_2);
     }
 }
 
@@ -460,21 +460,21 @@ function makeRequest(userID, data, room, remark) {
     var lastRow = rangeData.getLastRow();
 
     var curr_user = userExists(userID);
-    var credits = curr_user.total_credits;
+    var total_credits = curr_user.total_credits;
 
     var data_arr = data.split('-');
     var category_number_remark = data_arr[1];
     var request = category_number_remark.split(' ')[0];
-    var favours = category_number_remark.split(' ')[1];
+    var deducted_credit = category_number_remark.split(' ')[1];
     var remark_placeholder = '-';
 
-    var new_credits = parseInt(credits) - parseInt(favours);
+    var new_credits = parseInt(total_credits) - parseInt(deducted_credit);
       
     var status = 'Available'    
     var now = currentDateTime();
 
-    active_request_sheet.appendRow([lastRow, request, favours, userID, status, now[0], now[1], remark_placeholder, favours]);
-    // update the user's new credits after minus the favour used
+    active_request_sheet.appendRow([lastRow, request, deducted_credit, userID, status, now[0], now[1], remark_placeholder, deducted_credit]);
+    // update the user's new credits after minus the credits used
     var userRow = findUserRow(userID);
     
     users_sheet.getRange(userRow, 4).setValue(new_credits);
@@ -482,10 +482,10 @@ function makeRequest(userID, data, room, remark) {
     var listOfSubs = subscribedUsers();
 
     if (remark === 0) {
-      sendText(userID, 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
+      sendText(userID, 'Request made: ' + request + ' \n' + credits + ' credit(s)' +'\nRef number: ' + lastRow);
       for (i = 0; i < listOfSubs.length; i++) {        
         if (listOfSubs[i] !== userID) {
-            sendText(listOfSubs[i], 'Request made: ' + request + ' \n' + favours + ' favour(s)' +'\nRef number: ' + lastRow);
+            sendText(listOfSubs[i], 'Request made: ' + request + ' \n' + credits + ' credit(s)' +'\nRef number: ' + lastRow);
         }
       }
     }
@@ -794,8 +794,8 @@ function getLeaderboardRow(userID) {
   for (i = 0; i < 3; i++) {
       var name = rangeValues[i][0];
       var room = rangeValues[i][1];
-      var totalFavours = rangeValues[i][2];
-      result = result + (i+1).toString() + ". " + name + " (" + room + ") " +  ": " + totalFavours + " Favours" + '\n';
+      var totalCredits = rangeValues[i][2];
+      result = result + (i+1).toString() + ". " + name + " (" + room + ") " +  ": " + totalCredits + " Credits" + '\n';
   } 
   return result;
  
