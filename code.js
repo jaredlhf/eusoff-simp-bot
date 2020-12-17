@@ -1,7 +1,7 @@
-var TOKEN = "1488628659:AAGG49VW24lhVNx1ZcBkB-e_ciI7Zi4T7f4";
-var sheet_id = "1MiPByQzVG-Zwe0vDSYjFSU-gfTt5uwH8JKQY61tk9JQ";
+var TOKEN = 
+var sheet_id = 
 var telegramUrl = "https://api.telegram.org/bot" + TOKEN;
-var webAppUrl = "https://script.google.com/macros/s/AKfycbz_PUrcc0lgCfoTFSMd5DtkiU1x0rf5HntUvJ67YuD9jJ5vcm8/exec";
+var webAppUrl = 
 
 // main function to deal with users
 function doPost(e) {
