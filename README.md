@@ -1,4 +1,4 @@
-# Simp_bot
+# Eusoff Simp Bot
 
 A telegram bot to allow Eusoffians to request for favours and also help others with daily work, such as tapaoing food.
 
