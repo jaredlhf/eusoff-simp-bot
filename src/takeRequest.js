@@ -42,14 +42,31 @@ function processRequest(userID) {
 }
               
 function takeRequest(userID, data) {
-    var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
+    var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request'); 
+    var rangeData = sheet.getDataRange();
+    var lastRow = rangeData.getLastRow();
+    var lastColumn = rangeData.getLastColumn();
+    sendText(402947214, "here");
+
+    var searchRange = sheet.getRange(2, 1, lastRow - 1, lastColumn);
+    var rangeValues = searchRange.getValues();
+    sendText(402947214, "here");
 
     var data_arr = data.split('-');
     var ref_id = parseInt(data_arr[1]) + 2;
+    var requestor_id = rangeValues[ref_id][3];
+    sendText(402947214, requestor_id);
           
     active_request_sheet.getRange(ref_id, 5).setValue("Taken");
     active_request_sheet.getRange(ref_id, 10).setValue(userID);
 
+    var slave = userExists(userID);
+    var name = slave.name;
+    var room = slave.room;
+    var str = "Request taken by " + name + " from " + room;
+
+
     sendText(userID, 'Request taken');
+    sendText(requestor_id, str);
 }
 // ------------------------------------
