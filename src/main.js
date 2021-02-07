@@ -56,17 +56,37 @@ function doPost(e) {
       } else if (text === '/start') {
         sendText(
           chatID,
-          "Welcome to Eusoff's Favours Bot! \nTo sign up /register \n" +
-          "To view active requests /view \n" + 
-          "To delete your current requests /cancel\n" +
+          "Welcome to Eusoff's Favours Bot! \n" +
+          "To sign up /register \n" +
+          "To view all active requests /view \n" + 
+          "To cancel a current request /cancel\n" +
           "To mark a request as complete /complete\n\n" +
-          "To make request /make_request\n" + 
-          "To take request /take_request\n" + 
+          "To make a request /make_request\n" + 
+          "To take a request /take_request\n" + 
           "To simp /simp\n" +
-          "To view the leaderboards /leaderboard\n\n" +
-          "To view the simp leaderboards /simp_leaderboard\n" + 
+          "To view leaderboards /leaderboard\n\n" +
+          "To view simp leaderboards /simpboard\n" + 
           "To subscribe to favour updates /subscribe\n" + 
-          "To unsubscribe from updates /unsubscribe\n"
+          "To unsubscribe from updates /unsubscribe\n" + 
+          "To check credits remaining /check\n\n" +
+          "To view this helpsheet again /help"
+          );
+      } else if (text === '/help') {
+        sendText(
+          chatID,
+          "Here's how to navigate Eusoff's FavourBot\n\n" +
+          "To view all active requests /view \n" + 
+          "To cancel a current request /cancel\n" +
+          "To mark a request as complete /complete\n\n" +
+          "To make a request /make_request\n" + 
+          "To take a request /take_request\n" + 
+          "To simp /simp\n" +
+          "To view leaderboards /leaderboard\n\n" +
+          "To view simp leaderboards /simpboard\n" + 
+          "To subscribe to favour updates /subscribe\n" + 
+          "To unsubscribe from updates /unsubscribe\n" + 
+          "To check credits remaining /check\n\n" +
+          "To view this helpsheet again /help"
           );
       } else if (text === '/view') {
         view(userId);
@@ -118,7 +138,7 @@ function doPost(e) {
         sendText(userId, "Unsubscribed :( Who hurt you?");        
       } else if (text === '/leaderboard') {
         sendText(chatID, getLeaderboardRow(userID));
-      } else if (text === '/simp_leaderboard') {
+      } else if (text === '/simpboard') {
         sendText(chatID, getSimpLeaderboardRow(userID));
       } else if (text === '/simp') {
         if (processSimpRequest(userId) === false) {
@@ -132,10 +152,12 @@ function doPost(e) {
         var name = data.name;
         var room = data.room;
         var simp = data.simp_points
-        if (credits === 0) {
-          sendText(userId, "Hi " + name + "(" + room + ") !" + "You have 0 credits:( Do some good! \nSimp Count: " + simp);
+        if (name === undefined) {
+          sendText("You don't seem to be a registered user yet! Register to receive 5 free credits.");
+        } else if (credits === 0) {
+          sendText(userId, "Hi " + name + " (" + room + ")! " + "You have 0 credits:( Do some good! \nSimp Count: " + simp);
         } else {
-          sendText(userId, "Hi " + name + "(" + room + ") !" + "You have " + credits + " credits!\nSimp Count: " + simp);
+          sendText(userId, "Hi " + name + " (" + room + ")! " + "You have " + credits + " credits!\nSimp Count: " + simp);
         }
         
       } else {
@@ -350,5 +372,7 @@ function oppositeGender(userFloor, requestorFloor) {
         }
     }
 }
+
+
 
 
