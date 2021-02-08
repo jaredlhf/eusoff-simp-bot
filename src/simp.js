@@ -65,6 +65,13 @@ function takeSimpRequest(userID, data) {
     var ref_id = parseInt(data_arr[1].split(' ')[0]);
     var gender_diff = data_arr[1].split(' ')[1];
     var pending_credit = rangeValues[ref_id][8];
+    
+    var requestor_id = parseInt(rangeValues[ref_id][3]);
+    var requestor_user = userExists(requestor_id);
+    var total_credits = requestor_user.total_credits;
+    var new_credits = parseInt(total_credits) + parseInt(pending_credit);
+    var requestorRow = findUserRow(requestor_id);    
+    users_sheet.getRange(requestorRow, 4).setValue(new_credits);
 
     var userRow = parseInt(findUserRow(userID));
           
