@@ -1,5 +1,3 @@
-// Simp Leaderboard
-// ---------------------------------------
 function getSimpLeaderboardRow(userID) {
   var simp_leaderboard_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName("Simp_Leaderboard");
   var rangeData = simp_leaderboard_sheet.getDataRange();
@@ -16,6 +14,4 @@ function getSimpLeaderboardRow(userID) {
       result = result + (i+1).toString() + ". " + name + " (" + room + ") " +  ": " + simpCount + " Counts" + '\n';
   } 
   return result;
- 
 }
-// ---------------------------------------

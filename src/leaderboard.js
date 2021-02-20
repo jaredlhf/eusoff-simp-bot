@@ -1,5 +1,3 @@
-// Leaderboard
-// ---------------------------------------
 function getLeaderboardRow(userID) {
   var leaderboard_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName("Normal_Leaderboard");
   var rangeData = leaderboard_sheet.getDataRange();
@@ -15,8 +13,5 @@ function getLeaderboardRow(userID) {
       var totalCredits = rangeValues[i][2];
       result = result + (i+1).toString() + ". " + name + " (" + room + ") " +  ": " + totalCredits + " Credits" + '\n';
   } 
-  return result;
- 
+  return result; 
 }
-// ---------------------------------------
-   

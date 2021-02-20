@@ -1,5 +1,3 @@
-// make_request
-// ------------------------------------
 function chooseCategory(userID) {
     var category_keyboard = {
         inline_keyboard: [
@@ -7,12 +5,6 @@ function chooseCategory(userID) {
             {
               text: 'Dabao',
               callback_data: 'category-Dabao',
-            },
-          ],
-          [
-            {
-              text: 'Collect Laundry',
-              callback_data: 'category-Collect_Laundry',
             },
           ],
           [
@@ -29,12 +21,6 @@ function chooseCategory(userID) {
           ],
           [
             {
-              text: 'Distract Barbara',
-              callback_data: 'category-Distract_Barbara',
-            },
-          ],
-          [
-            {
               text: 'Miscellaneous',
               callback_data: 'category-Miscellaneous',
             },
@@ -46,40 +32,13 @@ function chooseCategory(userID) {
 }
 
 function giveCredit(userID, data) {
-            // data - category-dabao
     var data_arr = data.split("-");
-            // dabao
-    var category = data_arr[1];
-            
-    var curr_user = userExists(userID);
-    var credits = curr_user.total_credits;
-            
-    var keyboard_1 = {
-        inline_keyboard: [
-            [
-            {
-                text: '1',
-                 // credit-dabao 1
-                callback_data: 'credit-' + category + ' 1',
-            },
-            ],
-            [
-            {
-                text: '2',
-                callback_data: 'credit-' + category + ' 2',
-            },
-            ],
-            [
-            {
-                text: '3',
-                callback_data: 'credit-' + category + ' 3',
-            },
-            ],
-        ],
-    };
+    var category = data_arr[1];            
+    var user = userInfo(userID);
+    var credits = user.total_credits;
     
     var keyboard = [];
-    for (i = 1; i <= credits; i++) {
+    for (i = 1; i <= credits && i <= 3; i++) {
           keyboard[i - 1] = [
               {
                 text: i,
@@ -87,78 +46,45 @@ function giveCredit(userID, data) {
               },
           ];
     }
-      
-    var keyboard_2 = {
-      inline_keyboard: keyboard,
-    };
-              
-    if (credits >= 3) {
-        sendText(userID, 'How many credits?', keyboard_1);
-    } else {
-        sendText(userID, 'How many credits?', keyboard_2);
-    }
+    sendText(userID, 'How many credits?', {inline_keyboard: keyboard});
 }
 
-function addRemark(userID, data) {
-    var data_arr = data.split("-");
-    var category_number = data_arr[1];
-    var remark_keyboard = {
-        inline_keyboard: [
-              [
-              {
-                  text: 'Yes',
-                  callback_data: 'remark-' + category_number + ' 1',
-              },
-              ],
-              [
-              {
-                  text: 'No',
-                  callback_data: 'remark-' + category_number + ' 0',
-              },
-              ],
-            ],
-        };           
-    
-    sendText(userID, 'Do you want to add any remarks?', remark_keyboard);
+function broadcast(userId, remark) {     
+  var req = getLastUserRequest(userId);
+  var listOfSubs = subscribedUsers();  
+  var user = userInfo(userId);
+
+  var str = req.ref + ". " + req.request + " - " + req.credits + " credit(s)\nmade by " + user.name + " at " + req.time.slice(0, -2) + ", " + req.date.slice(0, -2) + "\nRemark: " + remark + "\n\n";
+
+  setRequestString(req.ref, str);
+  setRequestRemark(req.ref, remark);  
+  setUserOngoing(userId, "0");  
+
+  if (req === false) {
+    sendText(userId, "Invalid!");
+  } 
+
+  sendText(userId, 'Request made: ' + req.request + ' \n' + req.credits + ' credit(s)\nRef number: ' + req.ref + '\nRemark: ' + remark);
+
+  var submsg = 'Request made by ' + user.name + ' (' + user.room + ') : ' + req.request + ' \n' + req.credits + ' credit(s)' +'\nRef number: ' + req.ref + '\nRemark: ' + remark;
+
+  for (i = 0; i < listOfSubs.length; i++) { 
+    if (listOfSubs[i] !== userId) {
+      sendText(parseInt(listOfSubs[i]), submsg);
+    }
+  }
 }
                 
-function makeRequest(userID, data, remark) {
-    var users_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
-    var active_request_sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Active_Request');
-    var rangeData = active_request_sheet.getDataRange();
-    var lastRow = rangeData.getLastRow();
-
-    var curr_user = userExists(userID);
-    var total_credits = curr_user.total_credits;
-
+function makeRequest(userID, data) {
+    var user = userInfo(userID);
+    var total_credits = user.total_credits;
+    var new_ref = requestLastRow();
     var data_arr = data.split('-');
     var category_number_remark = data_arr[1];
     var request = category_number_remark.split(' ')[0];
     var deducted_credit = category_number_remark.split(' ')[1];
-    var remark_placeholder = '-';
-
     var new_credits = parseInt(total_credits) - parseInt(deducted_credit);
-      
-    var status = 'Available'    
     var now = currentDateTime();
-
-    active_request_sheet.appendRow([lastRow, request, deducted_credit, userID, status, now[0], now[1], remark_placeholder, deducted_credit]);
-    // update the user's new credits after minus the credits used
-    var userRow = findUserRow(userID);
-    
-    users_sheet.getRange(userRow, 4).setValue(new_credits);
-  
-    var listOfSubs = subscribedUsers();
-
-    if (remark === 0) {
-      sendText(userID, 'Request made: ' + request + ' \n' + new_credits + ' credit(s)' +'\nRef number: ' + lastRow);
-      for (i = 0; i < listOfSubs.length; i++) {        
-        if (listOfSubs[i] !== userID) {
-            var data = userExists(userID);
-            var name = data.name;
-            sendText(listOfSubs[i], 'Request made by ' + name + ': ' + request + ' \n' + new_credits + ' credit(s)' +'\nRef number: ' + lastRow);
-        }
-      }
-    }
+    newRequest(new_ref, request, deducted_credit, userID, "Available", now[0], now[1], "-", 0, "", "");
+    setUserCredits(userID, new_credits);
 }
-// ------------------------------------

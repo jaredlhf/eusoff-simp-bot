@@ -1,7 +1,5 @@
-// register
-// ------------------------------------
 function register(userID) {
-    var user = userExists(userID);
+    var user = userInfo(userID);
     var text = 'failed';
   
     if (Object.getOwnPropertyNames(user).length === 0) {
@@ -35,19 +33,15 @@ function register(userID) {
     sendText(userID, text);
 }
 
-function addUser(data) {
-    var sheet = SpreadsheetApp.openById(sheet_id).getSheetByName('Users');
-  
+function addUser(data) {  
     var raw_user_data = data.message.text;
     var user_data_arr = raw_user_data.split(" ");
 
     var name = user_data_arr[0];
     var room = user_data_arr[1];
     var id = data.message.chat.id;
-    var total_credits = 5;
-    var init_simp_count = 0;
   
-    sheet.appendRow([id, name, room, total_credits, init_simp_count, 'No']);
+    newUser(id, name, room);
   
     var text =
         'Hello ' +
@@ -75,4 +69,3 @@ function addUser(data) {
   
       sendText(id, text);
 }
-// ------------------------------------
