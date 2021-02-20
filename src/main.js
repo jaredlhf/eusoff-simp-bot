@@ -130,19 +130,6 @@ function deleteWebhook() {
     var response = UrlFetchApp.fetch(url);
 }
 
-
-function currentDateTime() {
-    var dateObj = new Date();
-    var month = dateObj.getMonth() + 1;
-    var day = String(dateObj.getDate()).padStart(2, '0');
-    var year = dateObj.getFullYear();
-    var date = day + '/' + month  + '/'+ year + 'Ew';
-    var hour = dateObj.getHours();
-    var min  = dateObj.getMinutes();
-    var time = (hour < 10 ? "0" + hour : hour) + ':' + (min < 10 ? "0" + min : min) + 'Ew';    
-    return [date, time];
-}
-
 function sendText(chatId, text, keyBoard) {
     var data = {
       method: 'post',
