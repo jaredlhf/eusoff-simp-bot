@@ -32,6 +32,10 @@ function completeRequest(userID, data) {
     var slave = userInfo(req.slaveId);
     var new_credits = parseInt(slave.total_credits) + parseInt(req.pending);
 
+    if (pending === 0) {      
+      setUserSimpCount(slave.userId, slave.simp_count + 1);
+    }
+
     setRequestStatus(refId, "Completed");
     setRequestPending(refId, 0);
     setUserCredits(req.slaveId, new_credits);

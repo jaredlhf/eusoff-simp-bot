@@ -47,7 +47,6 @@ function takeSimpRequest(userID, data) {
     var new_credits = parseInt(total_credits) + parseInt(pending_credit);
 
     setUserCredits(requestor_id, new_credits);    
-    setUserSimpCount(userID, user.simp_count + 1);
 
     setRequestStatus(refId, "Taken");
     setRequestPending(refId, 0);
