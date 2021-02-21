@@ -41,9 +41,10 @@ function takeRequest(userID, data) {
       setRequestSlave(refId, userID);
 
       var slave = userInfo(userID);
-      var str = "Request taken by " + slave.name + " from " + slave.room;
-
-      sendText(userID, 'Request taken');
-      sendText(requestor_id, str);
+      var str1 = 'Request taken: ' + req.request + '\nCredit(s): ' + req.credits + '\nRef number: ' + req.ref + '\nRemark: ' + req.remark;
+      var str2 = "Request taken by " + slave.name + " from " + slave.room;
+      
+      sendText(userID, str1);
+      sendText(requestor_id, str2);
     }
 }
