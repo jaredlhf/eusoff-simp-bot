@@ -64,7 +64,7 @@ function doPost(e) {
           "To unsubscribe from updates /unsubscribe\n"
           );
       } else if (text === '/view') {
-        view(userId, 0);
+        view(userId);
       } else if (text === '/cancel') {
         if (viewOwn(userId) === false) {
             sendText(chatID, 'You have no requests to cancel');
