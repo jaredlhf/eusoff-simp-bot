@@ -32,13 +32,19 @@ function takeRequest(userID, data) {
     var data_arr = data.split('-');
     var refId = parseInt(data_arr[1]) + 1;
     var requestor_id = rangeValues[refId - 1][3];
+    var req = requestInfo(rangeValues[refId - 1][0]);
 
-    setRequestStatus(refId, "Taken");
-    setRequestSlave(refId, userID);
+    if (req.status == "Taken") {
+      sendText(userID, "Sorry, this request has already been taken");
+    } else {
+      setRequestStatus(refId, "Taken");
+      setRequestSlave(refId, userID);
 
-    var slave = userInfo(userID);
-    var str = "Request taken by " + slave.name + " from " + slave.room;
-
-    sendText(userID, 'Request taken');
-    sendText(requestor_id, str);
+      var slave = userInfo(userID);
+      var str1 = 'Request taken: ' + req.request + '\nCredit(s): ' + req.credits + '\nRef number: ' + req.ref + '\nRemark: ' + req.remark;
+      var str2 = "Request taken by " + slave.name + " from " + slave.room;
+      
+      sendText(userID, str1);
+      sendText(requestor_id, str2);
+    }
 }
