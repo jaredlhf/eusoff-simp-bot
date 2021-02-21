@@ -35,7 +35,7 @@ function takeRequest(userID, data) {
     var req = requestInfo(rangeValues[refId - 1][0]);
 
     if (req.status == "Taken") {
-      sendText(userID, "Sorry, this request has already been taken");
+      sendText(userID, "Sorry, this request has already been taken. Too slow!");
     } else {
       setRequestStatus(refId, "Taken");
       setRequestSlave(refId, userID);
