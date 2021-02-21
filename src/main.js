@@ -100,17 +100,7 @@ function doPost(e) {
             sendText(chatID, 'Which request do you want to take?', processSimpRequest(userId));
           }
       } else if (text === '/check') {
-        var data = userInfo(userId);
-        var credits = data.total_credits;
-        var name = data.name;
-        var room = data.room;
-        var simp = data.simp_count;
-        if (credits === 0) {
-          sendText(userId, "Hi " + name + "(" + room + ") !" + "You have 0 credits:( Do some good! \nSimp Count: " + simp);
-        } else {
-          sendText(userId, "Hi " + name + "(" + room + ") !" + "You have " + credits + " credits!\nSimp Count: " + simp);
-        }
-        
+        sendText(userId, check(userId));
       } else {
         if (check_name_room_validity(text)) {
           addUser(contents);
