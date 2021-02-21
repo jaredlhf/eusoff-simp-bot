@@ -42,6 +42,7 @@ function addUser(data) {
     var id = data.message.chat.id;
   
     newUser(id, name, room);
+    addUserToTrack(id);
   
     var text =
         'Hello ' +
