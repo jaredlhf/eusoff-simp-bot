@@ -1,5 +1,5 @@
-function view(userID, index) {
-  var next = parseInt(index) + 1;
+function view(userID) {
+  var next = 1;
   var keyboard = [
           [
             {
@@ -8,7 +8,7 @@ function view(userID, index) {
             },
           ],
   ]
-  sendText(userID, getTestView(index), {inline_keyboard: keyboard});
+  sendText(userID, getTestView(0), {inline_keyboard: keyboard});
 }
 
 function updateView(userID, data, message_id) {
