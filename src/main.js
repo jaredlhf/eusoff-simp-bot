@@ -1,6 +1,6 @@
-var TOKEN = '';
+var TOKEN = '1661881921:AAHe0rz_r4ojgH-Y-sgt6f4imCQeIDKyjXE';
 var telegramUrl = "https://api.telegram.org/bot" + TOKEN;
-var webAppUrl = '';
+var webAppUrl = 'https://script.google.com/macros/s/AKfycbzzA--5BV3_y-4orKG0zCQQyY96HgCQkRmc66uKMkTcrUMJE3Jh-uEG/exec';
 
 function doPost(e) {
     var contents = JSON.parse(e.postData.contents);
@@ -11,6 +11,7 @@ function doPost(e) {
       var userID = contents.callback_query.from.id;
       var data = contents.callback_query.data;
       var command = data.split('-')[0];
+      var message_id = contents.callback_query.message.message_id;
       
       if (command === 'category') {
         giveCredit(idCallback, data);
@@ -26,6 +27,8 @@ function doPost(e) {
         completeRequest(idCallback, data);
       } else if (command === 'simp') {
         takeSimpRequest(idCallback, data);
+      } else if (command === 'toggle') {
+        updateView(idCallback, data, message_id);
       }
 
     } else if (contents.message) {
@@ -61,7 +64,7 @@ function doPost(e) {
           "To unsubscribe from updates /unsubscribe\n"
           );
       } else if (text === '/view') {
-        view(userId);
+        view(userId, 0);
       } else if (text === '/cancel') {
         if (viewOwn(userId) === false) {
             sendText(chatID, 'You have no requests to cancel');
@@ -136,6 +139,21 @@ function sendText(chatId, text, keyBoard) {
       payload: {
         method: 'sendMessage',
         chat_id: String(chatId),
+        text: text,
+        parse_mode: 'HTML',
+        reply_markup: JSON.stringify(keyBoard),
+      },
+    };
+    return UrlFetchApp.fetch(telegramUrl + '/', data);
+}
+
+function updateText(chat_id, message_id, text, keyBoard) {
+  var data = {
+      method: 'post',
+      payload: {
+        method: 'editMessageText',
+        chat_id: String(chat_id),
+        message_id: String(message_id),
         text: text,
         parse_mode: 'HTML',
         reply_markup: JSON.stringify(keyBoard),
