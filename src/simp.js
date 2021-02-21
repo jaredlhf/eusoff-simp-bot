@@ -48,7 +48,7 @@ function takeSimpRequest(userID, data) {
     var new_credits = parseInt(total_credits) + parseInt(pending_credit);
 
     if (req.status == "Taken") {
-      sendText(userID, "Sorry, this request has already been taken");
+      sendText(userID, "Sorry, this request has already been taken. Too slow!");
     } else {
       setUserCredits(requestor_id, new_credits);    
 
