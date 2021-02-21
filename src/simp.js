@@ -39,18 +39,23 @@ function takeSimpRequest(userID, data) {
     var data_arr = data.split('-');
     var refId = parseInt(data_arr[1].split(' ')[0]) + 1;
     var gender_diff = data_arr[1].split(' ')[1];
-    var pending_credit = rangeValues[refId - 1][8];
+    var req = requestInfo(rangeValues[refId - 1][0]);
+    var pending_credit = req.credits;
 
     var requestor_id = parseInt(rangeValues[refId - 1][3]);
     var requestor_user = userInfo(requestor_id);
     var total_credits = requestor_user.total_credits;
     var new_credits = parseInt(total_credits) + parseInt(pending_credit);
 
-    setUserCredits(requestor_id, new_credits);    
+    if (req.status == "Taken") {
+      sendText(userID, "Sorry, this request has already been taken. Too slow!");
+    } else {
+      setUserCredits(requestor_id, new_credits);    
 
-    setRequestStatus(refId, "Taken");
-    setRequestPending(refId, 0);
-    setRequestSlave(refId, userID);
+      setRequestStatus(refId, "Taken");
+      setRequestPending(refId, 0);
+      setRequestSlave(refId, userID);
 
-    sendText(userID, 'Request taken! What a simp ( ͡° ͜ʖ ͡°)...');
+      sendText(userID, 'Request taken: ' + req.request + '\nRef number: ' + req.ref + '\nRemark: ' + req.remark + '\nWhat a simp ( ͡° ͜ʖ ͡°)...');
+    }
 }
