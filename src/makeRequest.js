@@ -75,9 +75,24 @@ function broadcast(userId, remark) {
 
   var submsg = 'Request made by ' + user.name + ' (' + user.room + ') : ' + req.request + ' \n' + req.credits + ' credit(s)' +'\nRef number: ' + req.ref + '\nRemark: ' + remark;
 
+  var ref = parseInt(req.ref) - 1;
+
+  var keyboard = [
+          [
+            {
+              text: 'Take Request',
+              callback_data: 'take_request-' + ref,
+            },
+            {
+              text: 'Simp',
+              callback_data: 'simp-' + ref + " o",
+            },
+          ],
+        ]
+
   for (i = 0; i < listOfSubs.length; i++) { 
     if (listOfSubs[i] !== userId) {
-      sendText(parseInt(listOfSubs[i]), submsg);
+      sendText(parseInt(listOfSubs[i]), submsg, {inline_keyboard: keyboard});
     }
   }
 }
