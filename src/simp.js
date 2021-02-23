@@ -57,5 +57,36 @@ function takeSimpRequest(userID, data) {
       setRequestSlave(refId, userID);
 
       sendText(userID, 'Request taken: ' + req.request + '\nRef number: ' + req.ref + '\nRemark: ' + req.remark + '\nWhat a simp ( ͡° ͜ʖ ͡°)...');
+//       sendMenu(userID);
+    }
+}
+
+function takeSimpRequestTest(userID, refId) {
+    var user = userInfo(userID);
+    var rangeValues = requestRange();
+
+    var req = requestInfo(rangeValues[refId - 1][0]);
+    var pending_credit = req.credits;
+
+    var requestor_id = parseInt(rangeValues[refId - 1][3]);
+    var requestor_user = userInfo(requestor_id);
+    var total_credits = requestor_user.total_credits;
+    var new_credits = parseInt(total_credits) + parseInt(pending_credit);
+
+    if (req.status == "Taken") {
+      sendText(userID, "Sorry, this request has already been taken. Too slow!");
+    } else {
+      if (req.userId === userID) {
+        sendText(userID, "Sorry, you can't simp for yourself!");
+      } else {
+        setUserCredits(requestor_id, new_credits);    
+
+      setRequestStatus(refId, "Taken");
+      setRequestPending(refId, 0);
+      setRequestSlave(refId, userID);
+
+      sendText(userID, 'Request taken: ' + req.request + '\nRef number: ' + req.ref + '\nRemark: ' + req.remark + '\nWhat a simp ( ͡° ͜ʖ ͡°)...');
+      }
+      sendMenu(userID);
     }
 }

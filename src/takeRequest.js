@@ -45,6 +45,33 @@ function takeRequest(userID, data) {
       var str2 = "Request taken by " + slave.name + " from " + slave.room;
       
       sendText(userID, str1);
+//       sendMenu(userID);
       sendText(requestor_id, str2);
+    }
+}
+
+function takeRequestTest(userID, refId) {
+    var rangeValues = requestRange();
+
+    var requestor_id = rangeValues[refId - 1][3];
+    var req = requestInfo(rangeValues[refId - 1][0]);
+
+    if (req.status == "Taken") {
+      sendText(userID, "Sorry, this request has already been taken. Too slow!");
+    } else {
+      if (req.userId === userID) {
+        sendText(userID, "Sorry, you can't take your own request!");
+      } else {
+        setRequestStatus(refId, "Taken");
+      setRequestSlave(refId, userID);
+
+      var slave = userInfo(userID);
+      var str1 = 'Request taken: ' + req.request + '\nCredit(s): ' + req.credits + '\nRef number: ' + req.ref + '\nRemark: ' + req.remark;
+      var str2 = "Request taken by " + slave.name + " from " + slave.room;
+      
+      sendText(userID, str1);
+      sendMenu(userID);
+      sendText(requestor_id, str2);    
+      }
     }
 }

@@ -15,3 +15,15 @@ function getSimpLeaderboardRow(userID) {
   } 
   return result;
 }
+
+function sendSimpLeaderboard(chatID, userID) {
+  var backkeyboard = [
+          [
+            {
+              text: 'Back',
+              callback_data: 'back-',
+            },
+          ]
+  ]
+  sendText(chatID, getSimpLeaderboardRow(userID), {inline_keyboard: backkeyboard});
+}

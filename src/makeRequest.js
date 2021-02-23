@@ -21,6 +21,12 @@ function chooseCategory(userID) {
           ],
           [
             {
+              text: 'Collect Parcel',
+              callback_data: 'category-Collect_Parcel',
+            },
+          ],
+          [
+            {
               text: 'Miscellaneous',
               callback_data: 'category-Miscellaneous',
             },
@@ -65,6 +71,7 @@ function broadcast(userId, remark) {
   } 
 
   sendText(userId, 'Request made: ' + req.request + ' \n' + req.credits + ' credit(s)\nRef number: ' + req.ref + '\nRemark: ' + remark);
+//   sendMenu(userId);
 
   var submsg = 'Request made by ' + user.name + ' (' + user.room + ') : ' + req.request + ' \n' + req.credits + ' credit(s)' +'\nRef number: ' + req.ref + '\nRemark: ' + remark;
 

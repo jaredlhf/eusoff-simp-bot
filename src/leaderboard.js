@@ -15,3 +15,15 @@ function getLeaderboardRow(userID) {
   } 
   return result; 
 }
+
+function sendLeaderboard(chatID, userID) {
+  var backkeyboard = [
+          [
+            {
+              text: 'Back',
+              callback_data: 'back-',
+            },
+          ]
+  ]
+  sendText(chatID, getLeaderboardRow(userID), { inline_keyboard: backkeyboard });
+}
