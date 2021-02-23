@@ -40,6 +40,15 @@ function completeRequest(userID, data) {
     setRequestStatus(refId, "Completed");
     setRequestPending(refId, 0);
     setUserCredits(req.slaveId, new_credits);
+    inc(locateUserRow(req.slaveId), locateUserRow(userID));
 
     sendText(userID, 'Request complete');
+}
+
+function locateUserRow(userId) {
+  for (j = 0; j < userLastRow() - 1; j++) {
+    if (usersRangeValues[j][0] === userId) {
+      return j + 2;
+    }
+  }
 }
