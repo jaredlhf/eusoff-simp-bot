@@ -39,6 +39,7 @@ function takeRequest(userID, refId) {
     } else {
       setRequestStatus(refId, "Taken");
       setRequestSlave(refId, userID);
+      setRequestPending(refId, req.credits);
 
       var slave = userInfo(userID);
       var str1 = 'Request taken: ' + req.request + '\nCredit(s): ' + req.credits + '\nRef number: ' + req.ref + '\nRemark: ' + req.remark;
