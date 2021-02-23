@@ -30,7 +30,8 @@ function completeRequest(userID, data) {
     var refId = parseInt(data_arr[1]) + 1;
     var req = requestInfo(refId);
     var slave = userInfo(req.slaveId);
-    var new_credits = parseInt(slave.total_credits) + parseInt(req.pending);
+    var pending = parseInt(req.pending);
+    var new_credits = parseInt(slave.total_credits) + pending;
 
     if (pending === 0) {      
       setUserSimpCount(slave.userId, slave.simp_count + 1);
