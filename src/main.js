@@ -19,11 +19,15 @@ function doPost(e) {
         sendText(idCallback, cancelRequest(data.split('-')[1], userID));
 //         sendMenu(userID);
       } else if (command === 'take_request') {
-        takeRequest(idCallback, data);
+        var data_arr = data.split('-');
+        var refId = parseInt(data_arr[1]) + 1;
+        takeRequest(idCallback, refId);
       } else if (command === 'complete') {
         completeRequest(idCallback, data);
       } else if (command === 'simp') {
-        takeSimpRequest(idCallback, data);
+        var data_arr = data.split('-');
+        var refId = parseInt(data_arr[1].split(' ')[0]) + 1;
+        takeSimpRequest(idCallback, refId);
       } else if (command === 'toggle') {
         updateView(idCallback, data, message_id);
       } else if (command === 'back') {
@@ -88,10 +92,10 @@ function doPost(e) {
           }
       } else if (text.slice(0, 6) === '/take_') {
         var ref = parseInt(text.substr(6));
-        takeRequestTest(userId, ref);
+        takeRequest(userId, ref);
       } else if (text.slice(0, 6) === '/simp_') {
         var ref = parseInt(text.substr(6));
-        takeSimpRequestTest(userId, ref)
+        takeSimpRequest(userId, ref)
       } else if (text === '/check') {
         sendText(userId, check(userId));
       } else {
@@ -221,7 +225,3 @@ function oppositeGender(userFloor, requestorFloor) {
         }
     }
 }
-
-
-
-
