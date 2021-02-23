@@ -148,8 +148,8 @@ function requestInfo(refId) {
   return request;  
 }
 
-function newUser(userId, name, room) {
-  Users.appendRow([userId, name, room, 5, 0, 'No', "fix", "0"]);
+function newUser(userId, name, room, tele_handle) {
+  Users.appendRow([userId, name, room, 5, 0, 'No', tele_handle, "0"]);
 }
 
 function newRequest(refId, request, credits, userId, status, date, time, remark, pend, slave, str) {
