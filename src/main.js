@@ -28,10 +28,12 @@ function doPost(e) {
         var data_arr = data.split('-');
         var refId = parseInt(data_arr[1].split(' ')[0]) + 1;
         takeSimpRequest(idCallback, refId);
-      } else if (command === 'toggle') {
+      } else if (command === 'toggleView') {
         updateView(idCallback, data, message_id);
       } else if (command === 'back') {
         updateText(idCallback, message_id, getMenu());
+      } else if (command === 'toggleProfile') {
+        updateProfile(idCallback, data, message_id);
       }
 
     } else if (contents.message) {
@@ -95,9 +97,9 @@ function doPost(e) {
         takeRequest(userId, ref);
       } else if (text.slice(0, 6) === '/simp_') {
         var ref = parseInt(text.substr(6));
-        takeSimpRequest(userId, ref)
-      } else if (text === '/check') {
-        sendText(userId, check(userId));
+        takeSimpRequest(userId, ref);
+      } else if (text === '/profile') {
+        sendText(userId, getProfile(userId)[0], {inline_keyboard: getProfileKeyboard(1)});
       } else {
         if (check_name_room_validity(text)) {
           addUser(contents);
@@ -135,7 +137,9 @@ function sendText(chatId, text, keyBoard) {
 }
 
 function getMenu() {
-  var str = "Welcome to Eusoff's Favours Bot! \nTo sign up /register \n" +
+  var str = "Welcome to Eusoff's Favours Bot! \n" +
+          "To sign up /register \n" +
+          "To view profile /profile \n" +
           "To view active requests /view \n" + 
           "To delete your current requests /cancel\n" +
           "To mark a request as complete /complete\n\n" +
