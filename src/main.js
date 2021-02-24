@@ -1,8 +1,3 @@
-var TOKEN = '1311687343:AAF__Vy4gi06kh1nMrCxz89r0pv7I8Dbr3g';
-var sheet_id = '1MiPByQzVG-Zwe0vDSYjFSU-gfTt5uwH8JKQY61tk9JQ';
-var telegramUrl = "https://api.telegram.org/bot" + TOKEN;
-var webAppUrl = 'https://script.google.com/macros/s/AKfycbwJfrWwM4Q9jSqH9Ema64MGtXMqggiIYl9Iv7OWlVbu1Nx2ejFI5OPkpQ/exec';
-
 function doPost(e) {
     var contents = JSON.parse(e.postData.contents);
   
@@ -102,7 +97,7 @@ function doPost(e) {
         takeRequest(userId, ref);
       } else if (text.slice(0, 6) === '/simp_') {
         var ref = parseInt(text.substr(6));
-         takeSimpRequest(userId, ref);
+        takeSimpRequest(userId, ref);
       } else if (text === '/profile') {
         sendText(userId, getProfile(userId)[0], {inline_keyboard: getProfileKeyboard(1)});
       } else {
