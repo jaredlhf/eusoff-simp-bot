@@ -56,6 +56,7 @@ function takeSimpRequest(userID, refId) {
       setRequestSlave(refId, userID);
 
       sendText(userID, 'You have chosen to simp!'.bold() + '\nRequest taken: ' + req.request + '\nRef number: ' + req.ref + '\nRemark: ' + req.remark + '\nWhat a simp ( ͡° ͜ʖ ͡°)...');
+      sendText(req.userId, 'Your request has been taken by a simp'.bold() + '\nRequest taken: ' + req.request + '\nSimped by: ' + user.name + ' (' + user.room + ') \nCredit(s): ' + req.credits + '\nRef number: ' + req.ref + '\nRemark: ' + req.remark);
     }
       // sendMenu(userID);
 }
