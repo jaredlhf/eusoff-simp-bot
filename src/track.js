@@ -1,33 +1,77 @@
-var Track = SpreadsheetApp.openById(sheet_id).getSheetByName('Track');
-
-var trackRangeData = Track.getDataRange();
-var trackLastColumn = trackRangeData.getLastColumn();
-var trackLastRow = trackRangeData.getLastRow();
-var trackSearchRange = Track.getRange(2, 1, trackLastRow - 1, trackLastColumn);
-var trackRangeValues = trackSearchRange.getValues();
-
-var cap = 5;
-
-function addUserToTrack(userId) {
-  var next = userLastRow();
-  Track.appendRow([userId]);
-  var temp = Track.getRange(trackLastRow + 1, 1).getValues();
-  Track.getRange(1, next).setValue(temp);
+function view(userID) {
+  var next = 1;
+  var keyboard = [
+          [
+            {
+              text: 'Next',
+              callback_data: 'toggle-' + next,
+            },
+          ],
+  ]
+  sendText(userID, getTestView(0), {inline_keyboard: keyboard});
 }
 
-function calculateCaps() {
-  var num = userLastRow();
-  for (i = 2; i <= num; i++) {
-    var sum = 0;
-    for (j = 2; j <= num; j++) {
-      var n = Track.getRange(i, j).getValues()[0][0];
-      sum += (n > cap) ? 5 : n;
-    }
-    Users.getRange(i, 9).setValue(sum);
+function updateView(userID, data, message_id) {
+  var data_arr = data.split('-');
+  var index = data_arr[1];
+  var previous = parseInt(index) - 1;
+  var next = parseInt(index) + 1;
+  var keyboard = [
+          [
+            {
+              text: 'Previous',
+              callback_data: 'toggle-' + previous,
+            },
+            {
+              text: 'Next',
+              callback_data: 'toggle-' + next,
+            },
+          ],
+        ]
+  var finalkeyboard = [
+          [
+            {
+              text: 'Previous',
+              callback_data: 'toggle-' + previous,
+            },
+          ]
+  ]
+  var firstkeyboard = [
+          [
+            {
+              text: 'Next',
+              callback_data: 'toggle-' + next,
+            },
+          ],
+  ]
+  var str = getTestView(index);
+  if (str === 'Showing Active Requests\n\n'.bold()) {
+    updateText(userID, message_id, "There are no requests left!", { inline_keyboard: finalkeyboard });
+  } else if (index === "0") {
+    updateText(userID, message_id, getTestView(index), {inline_keyboard: firstkeyboard});
+  } else {    
+    updateText(userID, message_id, getTestView(index), {inline_keyboard: keyboard});
   }
 }
 
-function inc(simp, requestor) {
-  var old = parseInt(Track.getRange(simp, requestor).getValues());
-  Track.getRange(simp, requestor).setValue(old + 1);
+function getTestView(index) {
+    var rangeValues = requestRange();
+    var str = 'Showing Active Requests\n\n'.bold();
+    var count = 0;
+    var max = 3;
+
+    for (i = 0; i < requestLastRow() - 1; i++) {
+      var req = requestInfo(rangeValues[i][0]);
+      var user = userInfo(req.userId);
+
+      if (req.status === "Available") {
+        if (count >= index*max && count < (index*max + max)) { 
+          str += req.ref + ". " + req.request + " - " + req.credits + " credit(s)\nmade by " + 
+          user.name + " at " + req.time.slice(0, -2) + ", " + req.date.slice(0, -2) + "\nRemark: " + 
+          req.remark + "\n" + "Take Request: /take_" + req.ref + "\nSimp: /simp_" + req.ref + "\n\n";
+        }
+        count++;
+      }
+    }
+    return str;
 }
