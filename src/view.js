@@ -46,7 +46,7 @@ function updateView(userID, data, message_id) {
   ]
   var str = getTestView(index);
   if (str === 'Showing Active Requests\n\n') {
-    updateText(userID, message_id, "There are no requests left!", { inline_keyboard: finalkeyboard });
+    updateText(userID, message_id, "There are no active requests to take up!", { inline_keyboard: finalkeyboard });
   } else if (index === "0") {
     updateText(userID, message_id, getTestView(index), {inline_keyboard: firstkeyboard});
   } else {    
