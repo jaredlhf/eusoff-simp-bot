@@ -4,7 +4,7 @@ function view(userID) {
           [
             {
               text: 'Next',
-              callback_data: 'toggle-' + next,
+              callback_data: 'toggleView-' + next,
             },
           ],
   ]
@@ -20,11 +20,11 @@ function updateView(userID, data, message_id) {
           [
             {
               text: 'Previous',
-              callback_data: 'toggle-' + previous,
+              callback_data: 'toggleView-' + previous,
             },
             {
               text: 'Next',
-              callback_data: 'toggle-' + next,
+              callback_data: 'toggleView-' + next,
             },
           ],
         ]
@@ -32,7 +32,7 @@ function updateView(userID, data, message_id) {
           [
             {
               text: 'Previous',
-              callback_data: 'toggle-' + previous,
+              callback_data: 'toggleView-' + previous,
             },
           ]
   ]
@@ -40,12 +40,12 @@ function updateView(userID, data, message_id) {
           [
             {
               text: 'Next',
-              callback_data: 'toggle-' + next,
+              callback_data: 'toggleView-' + next,
             },
           ],
   ]
   var str = getTestView(index);
-  if (str === 'Showing Active Requests\n\n'.bold()) {
+  if (str === 'Showing Active Requests\n\n') {
     updateText(userID, message_id, "There are no requests left!", { inline_keyboard: finalkeyboard });
   } else if (index === "0") {
     updateText(userID, message_id, getTestView(index), {inline_keyboard: firstkeyboard});
