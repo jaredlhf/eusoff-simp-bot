@@ -39,8 +39,8 @@ function cancelRequest(row_data, userID) {
       setRequestPending(refId, 0);
       setUserCredits(userID, newCredits);
       
-      return 'Request cancelled!';
+      return 'Request cancelled!'.bold() + '\nRequest: ' + req.request + ' \n' + req.credits + ' credit(s)\nRef number: ' + req.ref + '\nRemark: ' + remark;
     } else {
-      return 'You have no active requests!';
+      return 'You have no active requests to cancel!';
     }
 }
