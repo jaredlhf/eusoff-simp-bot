@@ -66,7 +66,7 @@ function doPost(e) {
         }
       } else if (text === '/take_request') {
         if (processRequest(userId) === false) {
-          sendText(chatID, 'There are no requests left');
+          sendText(chatID, 'There are no active requests to take up!');
         } else {
           sendText(chatID, 'Which request do you want to take?', processRequest(userId));
         }
